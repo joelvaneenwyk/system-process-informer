@@ -1,9 +1,12 @@
 @echo off
 goto:$Main
 
-:CommandVar
+:ClearError
+exit /b 0
+
+:Command
 setlocal EnableDelayedExpansion
-    set "_command=!%~1!"
+    set "_command=%*"
     set "_command=!_command:      = !"
     set "_command=!_command:    = !"
     set "_command=!_command:   = !"
@@ -17,14 +20,10 @@ setlocal EnableDelayedExpansion
     set _error_value=%ERRORLEVEL%
 endlocal & exit /b %_error_value%
 
-:Command
-setlocal EnableDelayedExpansion
-    set "_command=%*"
-    call :CommandVar "_command"
-endlocal & exit /b
-
 :$Main
-setlocal
+setlocal EnableExtensions
+    call :ClearError
+
     call :Command "%~dp0build\build_thirdparty.cmd"
     if errorlevel 1 goto:$MainError
 
@@ -40,8 +39,8 @@ setlocal
     call :Command "%~dp0build\build_sdk.cmd"
     if errorlevel 1 goto:$MainError
 
-    call :Command "%~dp0build\build_zdriver.cmd"
-    if errorlevel 1 goto:$MainError
+    REM call :Command "%~dp0build\build_zdriver.cmd"
+    REM if errorlevel 1 goto:$MainError
 
     echo Builds all completed successfully!
     goto:$MainDone
