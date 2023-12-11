@@ -64,11 +64,6 @@ jobs:
         working-directory: ${{github.workspace}}
         run: build\build_thirdparty.cmd
 
-      - name: Build Solution
-        shell: cmd
-        working-directory: ${{github.workspace}}
-        run: build\build_thirdparty.cmd
-
       - name: Build Tools
         shell: cmd
         working-directory: ${{github.workspace}}
@@ -78,6 +73,7 @@ jobs:
         shell: cmd
         working-directory: ${{github.workspace}}
         run: build\build_verbose.cmd
+        if: ${{ matrix.language }} == 'c-cpp'
 
       - name: Build Solution (Extras)
         shell: cmd
@@ -88,11 +84,13 @@ jobs:
         shell: cmd
         working-directory: ${{github.workspace}}
         run: build\build_sdk.cmd
+        if: ${{ matrix.language }} == 'c-cpp'
 
       - name: Build Driver
         shell: cmd
         working-directory: ${{github.workspace}}
         run: build\build_zdriver.cmd prefast
+        if: ${{ matrix.language }} == 'c-cpp'
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
