@@ -2,9 +2,9 @@ name: continuous-integration
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
   workflow_dispatch:
 
@@ -15,16 +15,19 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Build Solution
-      shell: cmd
-      working-directory: ${{github.workspace}}
-      run: build\build_verbose.cmd
+      - uses: actions/checkout@v3
+
+      - name: Build Solution
+        shell: cmd
+        working-directory: ${{github.workspace}}
+        run: build\build_verbose.cmd
+
   build_driver:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Build Driver
-      shell: cmd
-      working-directory: ${{github.workspace}}
-      run: build\build_zdriver.cmd prefast
+      - uses: actions/checkout@v3
+
+      - name: Build Driver
+        shell: cmd
+        working-directory: ${{github.workspace}}
+        run: build\build_zdriver.cmd prefast
