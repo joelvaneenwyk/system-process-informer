@@ -33,9 +33,9 @@ endlocal & exit /b %_error_value%
     call "%VSINSTALLPATH%\VC\Auxiliary\Build\vcvarsall.bat" %_arch%
 
     @cd /d "%~dp0\..\"
-    call :Command msbuild /m %_path% -property:Configuration=Debug -property:Platform=%_target% -verbosity:normal
+    call :Command msbuild /m %_path% -property:Configuration=Debug -property:Platform="%_target%" -verbosity:normal
     if errorlevel 1 goto:$BuildError
-    call :Command msbuild /m %_path% -property:Configuration=Release -property:Platform=%_target% -verbosity:normal
+    call :Command msbuild /m %_path% -property:Configuration=Release -property:Platform="%_target%" -verbosity:normal
     if errorlevel 1 goto:$BuildError
     goto:$BuildEnd
 
