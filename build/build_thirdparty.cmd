@@ -41,6 +41,8 @@ if %ERRORLEVEL% neq 0 goto end
 
 msbuild /m tools\thirdparty\thirdparty.sln -property:Configuration=Release -property:Platform=ARM64 -verbosity:normal
 if %ERRORLEVEL% neq 0 goto end
+goto:eof
 
 :end
-pause
+echo [ERROR] Build failed.
+if not "%SYSTEM_INFORMER_CI%"=="1" pause

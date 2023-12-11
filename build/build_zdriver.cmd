@@ -47,7 +47,7 @@ for /f "usebackq tokens=*" %%A in (`call "%ProgramFiles(x86)%\Microsoft Visual S
 )
 
 if not defined VSINSTALLPATH (
-    echo [-] Visual Studio not found 
+    echo [-] Visual Studio not found
     goto end
 )
 
@@ -67,6 +67,8 @@ msbuild KSystemInformer\KSystemInformer.sln -restore -t:%BUILD_TARGET% -p:Config
 if %ERRORLEVEL% neq 0 goto end
 
 echo [+] Build Complete! %BUILD_CONFIGURATION% %BUILD_TARGET% %PREFAST_ANALYSIS% %LEGACY_BUILD%
+goto:eof
 
 :end
-pause
+echo [ERROR] Build failed.
+if not "%SYSTEM_INFORMER_CI%"=="1" pause
