@@ -33,14 +33,14 @@ setlocal EnableExtensions
     call :Command "%~dp0build\build_verbose.cmd"
     if errorlevel 1 goto:$MainError
 
-    call :Command "%~dp0build\build_verbose_extras.cmd"
-    if errorlevel 1 goto:$MainError
-
     call :Command "%~dp0build\build_sdk.cmd"
     if errorlevel 1 goto:$MainError
 
-    REM call :Command "%~dp0build\build_zdriver.cmd"
-    REM if errorlevel 1 goto:$MainError
+    call :Command "%~dp0build\build_zdriver.cmd" prefast debug
+    if errorlevel 1 goto:$MainError
+
+    call :Command "%~dp0build\build_zdriver.cmd" prefast release
+    if errorlevel 1 goto:$MainError
 
     echo Builds all completed successfully!
     goto:$MainDone

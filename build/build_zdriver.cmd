@@ -1,74 +1,92 @@
 @echo off
-@setlocal enableextensions
-@cd /d "%~dp0\..\"
+goto:$Main
 
-set BUILD_CONFIGURATION=Debug
-set BUILD_TARGET=Build
-set PREFAST_ANALYSIS=
+:Command
+setlocal EnableExtensions EnableDelayedExpansion
+    set "_command=%*"
+    set "_command=!_command:      = !"
+    set "_command=!_command:    = !"
+    set "_command=!_command:   = !"
+    set "_command=!_command:  = !"
+    set _error_value=0
+    echo ##[cmd] !_command!
+    !_command!
+    set _error_value=%ERRORLEVEL%
+endlocal & exit /b %_error_value%
 
-:argloop
-if not "%1"=="" (
-    if "%1"=="debug" (
-        set BUILD_CONFIGURATION=Debug
+:$Main
+    @setlocal enableextensions
+    @cd /d "%~dp0\..\"
+
+    set BUILD_CONFIGURATION=Debug
+    set BUILD_TARGET=Build
+    set PREFAST_ANALYSIS=
+
+    :argloop
+    if not "%1"=="" (
+        if "%1"=="debug" (
+            set BUILD_CONFIGURATION=Debug
+            shift
+            goto :argloop
+        )
+        if "%1"=="release" (
+            set BUILD_CONFIGURATION=Release
+            shift
+            goto :argloop
+        )
+        if "%1"=="build" (
+            set BUILD_TARGET=Build
+            shift
+            goto :argloop
+        )
+        if "%1"=="rebuild" (
+            set BUILD_TARGET=Rebuild
+            shift
+            goto :argloop
+        )
+        if "%1"=="clean" (
+            set BUILD_TARGET=Clean
+            shift
+            goto :argloop
+        )
+        if "%1"=="prefast" (
+            set PREFAST_ANALYSIS=-p:RunCodeAnalysis=true -p:CodeAnalysisTreatWarningsAsErrors=true
+            shift
+            goto :argloop
+        )
         shift
         goto :argloop
     )
-    if "%1"=="release" (
-        set BUILD_CONFIGURATION=Release
-        shift
-        goto :argloop
+
+    for /f "usebackq tokens=*" %%A in (`call "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.Component.MSBuild -property installationPath`) do (
+        set VSINSTALLPATH=%%A
     )
-    if "%1"=="build" (
-        set BUILD_TARGET=Build
-        shift
-        goto :argloop
+
+    if not defined VSINSTALLPATH (
+        echo [-] Visual Studio not found
+        goto:$MainEnd
     )
-    if "%1"=="rebuild" (
-        set BUILD_TARGET=Rebuild
-        shift
-        goto :argloop
+
+    if exist "%VSINSTALLPATH%\VC\Auxiliary\Build\vcvarsall.bat" (
+       call "%VSINSTALLPATH%\VC\Auxiliary\Build\vcvarsall.bat" amd64_arm64
+    ) else (
+        echo [-] Failed to set up build environment
+        goto:$MainEnd
     )
-    if "%1"=="clean" (
-        set BUILD_TARGET=Clean
-        shift
-        goto :argloop
-    )
-    if "%1"=="prefast" (
-        set PREFAST_ANALYSIS=-p:RunCodeAnalysis=true -p:CodeAnalysisTreatWarningsAsErrors=true
-        shift
-        goto :argloop
-    )
-    shift
-    goto :argloop
-)
 
-for /f "usebackq tokens=*" %%A in (`call "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.Component.MSBuild -property installationPath`) do (
-    set VSINSTALLPATH=%%A
-)
+    echo [+] Building... %BUILD_CONFIGURATION% %BUILD_TARGET% %PREFAST_ANALYSIS% %LEGACY_BUILD%
 
-if not defined VSINSTALLPATH (
-    echo [-] Visual Studio not found
-    goto end
-)
+    call :Command msbuild KSystemInformer\KSystemInformer.sln -restore -t:%BUILD_TARGET% -p:Configuration=%BUILD_CONFIGURATION%;Platform=x64 -maxCpuCount -consoleLoggerParameters:Summary;Verbosity=minimal %PREFAST_ANALYSIS%
+    if errorlevel 1 goto:$MainError
 
-if exist "%VSINSTALLPATH%\VC\Auxiliary\Build\vcvarsall.bat" (
-   call "%VSINSTALLPATH%\VC\Auxiliary\Build\vcvarsall.bat" amd64_arm64
-) else (
-    echo [-] Failed to set up build environment
-    goto end
-)
+    call :Command msbuild KSystemInformer\KSystemInformer.sln -restore -t:%BUILD_TARGET% -p:Configuration=%BUILD_CONFIGURATION%;Platform=ARM64 -maxCpuCount -consoleLoggerParameters:Summary;Verbosity=minimal %PREFAST_ANALYSIS%
+    if errorlevel 1 goto:$MainError
 
-echo [+] Building... %BUILD_CONFIGURATION% %BUILD_TARGET% %PREFAST_ANALYSIS% %LEGACY_BUILD%
+    :$MainDone
+    echo [+] Build Complete! %BUILD_CONFIGURATION% %BUILD_TARGET% %PREFAST_ANALYSIS% %LEGACY_BUILD%
+    goto:$MainEnd
 
-msbuild KSystemInformer\KSystemInformer.sln -restore -t:%BUILD_TARGET% -p:Configuration=%BUILD_CONFIGURATION%;Platform=x64 -maxCpuCount -consoleLoggerParameters:Summary;Verbosity=minimal %PREFAST_ANALYSIS%
-if %ERRORLEVEL% neq 0 goto end
-
-msbuild KSystemInformer\KSystemInformer.sln -restore -t:%BUILD_TARGET% -p:Configuration=%BUILD_CONFIGURATION%;Platform=ARM64 -maxCpuCount -consoleLoggerParameters:Summary;Verbosity=minimal %PREFAST_ANALYSIS%
-if %ERRORLEVEL% neq 0 goto end
-
-echo [+] Build Complete! %BUILD_CONFIGURATION% %BUILD_TARGET% %PREFAST_ANALYSIS% %LEGACY_BUILD%
-goto:eof
-
-:end
-echo [ERROR] Build failed.
-if not "%SYSTEM_INFORMER_CI%"=="1" pause
+    :$MainError
+    echo [ERROR] Build failed.
+    if not "%SYSTEM_INFORMER_CI%"=="1" pause
+:$MainEnd
