@@ -91,27 +91,27 @@ KSystemInformer/bin/*
 !tools/CustomBuildTool/bin/
 tools/CustomBuildTool/bin/Debug*/
 tools/CustomBuildTool/bin/Release*/*
-!tools/CustomBuildTool/bin/Release/*.exe
-!tools/CustomBuildTool/bin/Release/*.dll
-!tools/CustomBuildTool/bin/Release/*.pdb
+# !tools/CustomBuildTool/bin/Release/*.exe
+# !tools/CustomBuildTool/bin/Release/*.dll
+# !tools/CustomBuildTool/bin/Release/*.pdb
 
 !tools/CustomSignTool/bin/
 tools/CustomSignTool/bin/Debug*/
 tools/CustomSignTool/bin/Release*/*
-!tools/CustomSignTool/bin/Release32/CustomSignTool.exe
-!tools/CustomSignTool/bin/Release64/CustomSignTool.exe
+# !tools/CustomSignTool/bin/Release32/CustomSignTool.exe
+# !tools/CustomSignTool/bin/Release64/CustomSignTool.exe
 
 !tools/fixlib/bin/
 tools/fixlib/bin/Debug/
 tools/fixlib/bin/Release/*
-!tools/fixlib/bin/Release/fixlib.exe
+# !tools/fixlib/bin/Release/fixlib.exe
 
 !tools/GenerateZw/GenerateZw/bin/
 tools/GenerateZw/GenerateZw/bin/Debug/
 tools/GenerateZw/GenerateZw/bin/Release/*
-!tools/GenerateZw/GenerateZw/bin/Release/GenerateZw.exe
+# !tools/GenerateZw/GenerateZw/bin/Release/GenerateZw.exe
 
 !tools/delaylib/bin/
 
 !tools/thirdparty/bin/
-!tools/thirdparty/bin/*/*.pdb
+# !tools/thirdparty/bin/*/*.pdb
