@@ -1,0 +1,15 @@
+{
+    "cSpell.words": [
+        "codeql",
+        "enableextensions",
+        "ERRORLEVEL",
+        "msbuild",
+        "prefast",
+        "setlocal",
+        "usebackq",
+        "vcvarsall",
+        "VSINSTALLPATH",
+        "vswhere",
+        "zdriver"
+    ]
+}
