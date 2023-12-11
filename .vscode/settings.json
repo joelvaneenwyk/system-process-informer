@@ -1,6 +1,8 @@
 {
     "cSpell.words": [
+        "bcdedit",
         "codeql",
+        "createkeypair",
         "enableextensions",
         "endlocal",
         "ERRORLEVEL",
@@ -12,6 +14,7 @@
         "phlib",
         "prefast",
         "setlocal",
+        "testsigning",
         "thirdparty",
         "usebackq",
         "vcvarsall",
