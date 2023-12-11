@@ -23,16 +23,31 @@ setlocal EnableDelayedExpansion
     call :CommandVar "_command"
 endlocal & exit /b
 
-:Run
-setlocal EnableDelayedExpansion
-    call :Command "%~1"
-endlocal & exit /b
-
 :$Main
 setlocal
-    call :Run "%~dp0build\build_thirdparty.cmd"
-    call :Run "%~dp0build\build_sdk.cmd"
-    call :Run "%~dp0build\build_verbose.cmd"
-    call :Run "%~dp0build\build_tools.cmd"
-    call :Run "%~dp0build\build_zdriver.cmd"
-endlocal
+    call :Command "%~dp0build\build_thirdparty.cmd"
+    if errorlevel 1 goto:$MainError
+
+    call :Command "%~dp0build\build_tools.cmd"
+    if errorlevel 1 goto:$MainError
+
+    call :Command "%~dp0build\build_verbose.cmd"
+    if errorlevel 1 goto:$MainError
+
+    call :Command "%~dp0build\build_verbose_extras.cmd"
+    if errorlevel 1 goto:$MainError
+
+    call :Command "%~dp0build\build_sdk.cmd"
+    if errorlevel 1 goto:$MainError
+
+    call :Command "%~dp0build\build_zdriver.cmd"
+    if errorlevel 1 goto:$MainError
+
+    echo Builds all completed successfully!
+    goto:$MainDone
+
+    :$MainError
+    echo [ERROR] Build failed. Error level: '%ERRORLEVEL%'
+
+    :$MainDone
+endlocal & exit /b %ERRORLEVEL%
