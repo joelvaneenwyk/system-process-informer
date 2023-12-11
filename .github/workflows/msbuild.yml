@@ -17,10 +17,30 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Build Third Party
+        shell: cmd
+        working-directory: ${{github.workspace}}
+        run: build\build_thirdparty.cmd
+
+      - name: Build Tools
+        shell: cmd
+        working-directory: ${{github.workspace}}
+        run: build\build_tools.cmd
+
       - name: Build Solution
         shell: cmd
         working-directory: ${{github.workspace}}
         run: build\build_verbose.cmd
+
+      - name: Build Solution (Extras)
+        shell: cmd
+        working-directory: ${{github.workspace}}
+        run: build\build_verbose_extras.cmd
+
+      - name: Build SDK
+        shell: cmd
+        working-directory: ${{github.workspace}}
+        run: build\build_sdk.cmd
 
   build_driver:
     runs-on: windows-latest

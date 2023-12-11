@@ -59,12 +59,17 @@ jobs:
           # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
           # queries: security-extended,security-and-quality
 
-      - name: Build Solution
+      - name: Build Third Party
         shell: cmd
         working-directory: ${{github.workspace}}
         run: build\build_thirdparty.cmd
 
       - name: Build Solution
+        shell: cmd
+        working-directory: ${{github.workspace}}
+        run: build\build_thirdparty.cmd
+
+      - name: Build Tools
         shell: cmd
         working-directory: ${{github.workspace}}
         run: build\build_tools.cmd
@@ -74,12 +79,12 @@ jobs:
         working-directory: ${{github.workspace}}
         run: build\build_verbose.cmd
 
-      - name: Build Solution
+      - name: Build Solution (Extras)
         shell: cmd
         working-directory: ${{github.workspace}}
         run: build\build_verbose_extras.cmd
 
-      - name: Build Solution
+      - name: Build SDK
         shell: cmd
         working-directory: ${{github.workspace}}
         run: build\build_sdk.cmd
