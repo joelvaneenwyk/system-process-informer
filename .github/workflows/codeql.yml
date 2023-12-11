@@ -75,11 +75,6 @@ jobs:
         run: build\build_verbose.cmd
         if: ${{ matrix.language }} == 'c-cpp'
 
-      - name: Build Solution (Extras)
-        shell: cmd
-        working-directory: ${{github.workspace}}
-        run: build\build_verbose_extras.cmd
-
       - name: Build SDK
         shell: cmd
         working-directory: ${{github.workspace}}
