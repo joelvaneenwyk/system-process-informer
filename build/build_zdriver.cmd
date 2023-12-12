@@ -18,9 +18,10 @@ endlocal & exit /b %ERRORLEVEL%
 
 :$Main
 setlocal EnableExtensions
-    set BUILD_CONFIGURATION=Debug
-    set BUILD_TARGET=Build
-    set PREFAST_ANALYSIS=
+    set "BUILD_CONFIGURATION=Debug"
+    set "BUILD_TARGET=Build"
+    set "BUILD_ROOT=%~dp0\..\"
+    set "PREFAST_ANALYSIS="
 
     :argloop
     if not "%1"=="" (
@@ -73,7 +74,7 @@ setlocal EnableExtensions
 
         echo [+] Building... %BUILD_CONFIGURATION% %BUILD_TARGET% %PREFAST_ANALYSIS% %LEGACY_BUILD%
 
-        set "_msbuild=msbuild "%~dp0KSystemInformer\KSystemInformer.sln" -restore -t:%BUILD_TARGET% -maxCpuCount -consoleLoggerParameters:Summary;Verbosity=minimal"
+        set "_msbuild=msbuild "%BUILD_ROOT%\KSystemInformer\KSystemInformer.sln" -restore -t:%BUILD_TARGET% -maxCpuCount -consoleLoggerParameters:Summary;Verbosity=minimal"
 
         call :Command %_msbuild% -p:Configuration="%BUILD_CONFIGURATION%";Platform=x64 %PREFAST_ANALYSIS%
         if errorlevel 1 goto:$MainError
