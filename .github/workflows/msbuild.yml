@@ -49,17 +49,17 @@ jobs:
       security-events: write
 
   build_driver:
+    strategy:
+      fail-fast: false
+      matrix:
+        config: ["debug", "release"]
+
     runs-on: windows-latest
     needs: [build]
     steps:
       - uses: actions/checkout@v3
 
-      - name: Build Driver (Debug)
+      - name: Build Driver
         shell: cmd
         working-directory: ${{github.workspace}}
-        run: build\build_zdriver.cmd prefast debug
-
-      - name: Build Driver (Release)
-        shell: cmd
-        working-directory: ${{github.workspace}}
-        run: build\build_zdriver.cmd prefast release
+        run: build\build_zdriver.cmd ${{ matrix.config }}
