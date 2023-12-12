@@ -17,6 +17,10 @@ on:
   schedule:
     - cron: "43 4 * * 1"
 
+env:
+  # When this is defined and set to one, the scripts know not to pause for user input
+  SYSTEM_INFORMER_CI: 1
+
 jobs:
   analyze:
     name: Analyze
