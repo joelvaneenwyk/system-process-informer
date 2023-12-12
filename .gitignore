@@ -2,6 +2,14 @@
 ## Visual Studio
 #################
 
+# Intermediate static analysis files
+.gdn/
+sdv/
+smv*.log
+*.sdv
+SDV-*.*
+*sdv*.cmd
+
 # User-specific files
 *.suo
 *.user
