@@ -3,8 +3,8 @@
 
     <!-- General -->
     <PropertyGroup Label="Globals">
-        <OutDir>$(SolutionDir)..\bin\$(Configuration)$(PlatformArchitecture)\plugins\</OutDir>
-        <IntDir>$(ProjectDir)obj\$(Configuration)$(PlatformArchitecture)\</IntDir>
+        <OutDir>$(SolutionDir)..\bin\$(Configuration)_$(Platform)\plugins\</OutDir>
+        <IntDir>$(ProjectDir)obj\$(Configuration)_$(Platform)\</IntDir>
         <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
         <UseDebugLibraries Condition="'$(Configuration)'=='Debug'">true</UseDebugLibraries>
         <UseDebugLibraries Condition="'$(Configuration)'=='Release'">false</UseDebugLibraries>
@@ -14,8 +14,8 @@
         <WholeProgramOptimization Condition="'$(Configuration)'=='Release'">true</WholeProgramOptimization>
         <GenerateManifest>false</GenerateManifest>
         <!-- Debugging -->
-        <LocalDebuggerCommand>$(SolutionDir)..\bin\$(Configuration)$(PlatformArchitecture)\SystemInformer.exe</LocalDebuggerCommand>
-        <LocalDebuggerWorkingDirectory>$(SolutionDir)..\bin\$(Configuration)$(PlatformArchitecture)\</LocalDebuggerWorkingDirectory>
+        <LocalDebuggerCommand>$(SolutionDir)..\bin\$(Configuration)_$(Platform)\SystemInformer.exe</LocalDebuggerCommand>
+        <LocalDebuggerWorkingDirectory>$(SolutionDir)..\bin\$(Configuration)_$(Platform)\</LocalDebuggerWorkingDirectory>
         <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     </PropertyGroup>
 

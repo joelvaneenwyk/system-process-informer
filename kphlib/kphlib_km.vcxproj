@@ -103,38 +103,38 @@
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(ProjectDir)bin\$(Configuration)$(PlatformArchitecture)\</OutDir>
-    <IntDir>$(ProjectDir)obj\km\$(Configuration)$(PlatformArchitecture)\</IntDir>
+    <OutDir>$(ProjectDir)bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(ProjectDir)obj\km\$(Configuration)_$(Platform)\</IntDir>
     <EnableInf2cat>false</EnableInf2cat>
     <TargetName>kphlib_km</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(ProjectDir)bin\$(Configuration)$(PlatformArchitecture)\</OutDir>
-    <IntDir>$(ProjectDir)obj\km\$(Configuration)$(PlatformArchitecture)\</IntDir>
+    <OutDir>$(ProjectDir)bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(ProjectDir)obj\km\$(Configuration)_$(Platform)\</IntDir>
     <EnableInf2cat>false</EnableInf2cat>
     <TargetName>kphlib_km</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(ProjectDir)bin\$(Configuration)$(PlatformArchitecture)\</OutDir>
-    <IntDir>$(ProjectDir)obj\km\$(Configuration)$(PlatformArchitecture)\</IntDir>
+    <OutDir>$(ProjectDir)bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(ProjectDir)obj\km\$(Configuration)_$(Platform)\</IntDir>
     <EnableInf2cat>false</EnableInf2cat>
     <TargetName>kphlib_km</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(ProjectDir)bin\$(Configuration)$(PlatformArchitecture)\</OutDir>
-    <IntDir>$(ProjectDir)obj\km\$(Configuration)$(PlatformArchitecture)\</IntDir>
+    <OutDir>$(ProjectDir)bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(ProjectDir)obj\km\$(Configuration)_$(Platform)\</IntDir>
     <EnableInf2cat>false</EnableInf2cat>
     <TargetName>kphlib_km</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
-    <OutDir>$(ProjectDir)bin\$(Configuration)$(PlatformArchitecture)\</OutDir>
-    <IntDir>$(ProjectDir)obj\km\$(Configuration)$(PlatformArchitecture)\</IntDir>
+    <OutDir>$(ProjectDir)bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(ProjectDir)obj\km\$(Configuration)_$(Platform)\</IntDir>
     <EnableInf2cat>false</EnableInf2cat>
     <TargetName>kphlib_km</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
-    <OutDir>$(ProjectDir)bin\$(Configuration)$(PlatformArchitecture)\</OutDir>
-    <IntDir>$(ProjectDir)obj\km\$(Configuration)$(PlatformArchitecture)\</IntDir>
+    <OutDir>$(ProjectDir)bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(ProjectDir)obj\km\$(Configuration)_$(Platform)\</IntDir>
     <EnableInf2cat>false</EnableInf2cat>
     <TargetName>kphlib_km</TargetName>
   </PropertyGroup>
