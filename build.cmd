@@ -5,24 +5,25 @@ goto:$Main
 exit /b 0
 
 :Command
-setlocal EnableDelayedExpansion
+setlocal EnableExtensions EnableDelayedExpansion
     set "_command=%*"
     set "_command=!_command:      = !"
     set "_command=!_command:    = !"
     set "_command=!_command:   = !"
     set "_command=!_command:  = !"
-    set _error_value=0
-
-    :$RunCommand
-    set SYSTEM_INFORMER_CI=1
-    echo ##[cmd] !_command!
-    call !_command!
-    set _error_value=%ERRORLEVEL%
-endlocal & exit /b %_error_value%
+    if "%GITHUB_ACTIONS%"=="" (
+        echo ##[cmd] !_command!
+    ) else (
+        echo [command]!_command!
+    )
+    !_command!
+endlocal & exit /b %ERRORLEVEL%
 
 :$Main
 setlocal EnableExtensions
     call :ClearError
+
+    set SYSTEM_INFORMER_CI=1
 
     call :Command "%~dp0build\build_thirdparty.cmd"
     if errorlevel 1 goto:$MainError

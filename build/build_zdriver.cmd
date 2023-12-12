@@ -8,11 +8,13 @@ setlocal EnableExtensions EnableDelayedExpansion
     set "_command=!_command:    = !"
     set "_command=!_command:   = !"
     set "_command=!_command:  = !"
-    set _error_value=0
-    echo ##[cmd] !_command!
+    if "%GITHUB_ACTIONS%"=="" (
+        echo ##[cmd] !_command!
+    ) else (
+        echo [command]!_command!
+    )
     !_command!
-    set _error_value=%ERRORLEVEL%
-endlocal & exit /b %_error_value%
+endlocal & exit /b %ERRORLEVEL%
 
 :$Main
 setlocal EnableExtensions

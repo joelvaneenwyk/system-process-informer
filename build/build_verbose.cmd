@@ -2,17 +2,19 @@
 goto:$Main
 
 :Command
-setlocal EnableDelayedExpansion
+setlocal EnableExtensions EnableDelayedExpansion
     set "_command=%*"
     set "_command=!_command:      = !"
     set "_command=!_command:    = !"
     set "_command=!_command:   = !"
     set "_command=!_command:  = !"
-    set _error_value=0
-    echo ##[cmd] !_command!
+    if "%GITHUB_ACTIONS%"=="" (
+        echo ##[cmd] !_command!
+    ) else (
+        echo [command]!_command!
+    )
     !_command!
-    set _error_value=%ERRORLEVEL%
-endlocal & exit /b %_error_value%
+endlocal & exit /b %ERRORLEVEL%
 
 :SetDevEnv
     for /f "usebackq tokens=*" %%a in (`call "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -prerelease -products * -requires Microsoft.Component.MSBuild -property installationPath`) do (
