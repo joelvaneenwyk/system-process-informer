@@ -3,7 +3,7 @@
     <OutputType>Exe</OutputType>
     <Platforms>x64;x86</Platforms>
     <TargetFramework>net8.0</TargetFramework>
-    <RuntimeIdentifiers>win7-x86;win7-x64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win-x86;win-x64</RuntimeIdentifiers>
     <TrimUnusedDependencies>true</TrimUnusedDependencies>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Version>1.0</Version>
