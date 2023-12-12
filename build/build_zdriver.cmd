@@ -15,9 +15,7 @@ setlocal EnableExtensions EnableDelayedExpansion
 endlocal & exit /b %_error_value%
 
 :$Main
-    @setlocal enableextensions
-    @cd /d "%~dp0\..\"
-
+setlocal EnableExtensions
     set BUILD_CONFIGURATION=Debug
     set BUILD_TARGET=Build
     set PREFAST_ANALYSIS=
@@ -59,7 +57,7 @@ endlocal & exit /b %_error_value%
     )
 
     for /f "usebackq tokens=*" %%A in (`call "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.Component.MSBuild -property installationPath`) do (
-        set VSINSTALLPATH=%%A
+        set "VSINSTALLPATH=%%A"
     )
 
     if not defined VSINSTALLPATH (
@@ -67,26 +65,32 @@ endlocal & exit /b %_error_value%
         goto:$MainEnd
     )
 
-    if exist "%VSINSTALLPATH%\VC\Auxiliary\Build\vcvarsall.bat" (
-       call "%VSINSTALLPATH%\VC\Auxiliary\Build\vcvarsall.bat" amd64_arm64
-    ) else (
-        echo [-] Failed to set up build environment
+    if not exist "%VSINSTALLPATH%\VC\Auxiliary\Build\vcvarsall.bat" goto:$MainSetDevEnvError
+    :$MainBuild
+        call "%VSINSTALLPATH%\VC\Auxiliary\Build\vcvarsall.bat" amd64_arm64
+
+        echo [+] Building... %BUILD_CONFIGURATION% %BUILD_TARGET% %PREFAST_ANALYSIS% %LEGACY_BUILD%
+
+        set "_msbuild=msbuild "%~dp0KSystemInformer\KSystemInformer.sln" -restore -t:%BUILD_TARGET% -maxCpuCount -consoleLoggerParameters:Summary;Verbosity=minimal"
+
+        call :Command %_msbuild% -p:Configuration="%BUILD_CONFIGURATION%";Platform=x64 %PREFAST_ANALYSIS%
+        if errorlevel 1 goto:$MainError
+
+        call :Command %_msbuild% -p:Configuration="%BUILD_CONFIGURATION%";Platform=ARM64 %PREFAST_ANALYSIS%
+        if errorlevel 1 goto:$MainError
+
+        echo [+] Build Complete! %BUILD_CONFIGURATION% %BUILD_TARGET% %PREFAST_ANALYSIS% %LEGACY_BUILD%
         goto:$MainEnd
-    )
 
-    echo [+] Building... %BUILD_CONFIGURATION% %BUILD_TARGET% %PREFAST_ANALYSIS% %LEGACY_BUILD%
-
-    call :Command msbuild KSystemInformer\KSystemInformer.sln -restore -t:%BUILD_TARGET% -p:Configuration=%BUILD_CONFIGURATION%;Platform=x64 -maxCpuCount -consoleLoggerParameters:Summary;Verbosity=minimal %PREFAST_ANALYSIS%
-    if errorlevel 1 goto:$MainError
-
-    call :Command msbuild KSystemInformer\KSystemInformer.sln -restore -t:%BUILD_TARGET% -p:Configuration=%BUILD_CONFIGURATION%;Platform=ARM64 -maxCpuCount -consoleLoggerParameters:Summary;Verbosity=minimal %PREFAST_ANALYSIS%
-    if errorlevel 1 goto:$MainError
-
-    :$MainDone
-    echo [+] Build Complete! %BUILD_CONFIGURATION% %BUILD_TARGET% %PREFAST_ANALYSIS% %LEGACY_BUILD%
-    goto:$MainEnd
+    :$MainSetDevEnvError
+        echo [-] Failed to set up build environment
+        goto:$MainError
 
     :$MainError
-    echo [ERROR] Build failed.
-    if not "%SYSTEM_INFORMER_CI%"=="1" pause
+        echo [ERROR] Build failed.
+        if "%SYSTEM_INFORMER_CI%"=="1" goto:$MainEnd
+
+        :: If not running a CI build then pause so that user can inspect errors
+        pause
 :$MainEnd
+endlocal & exit /b %ERRORLEVEL%
