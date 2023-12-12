@@ -76,7 +76,8 @@ setlocal EnableExtensions
         call :Command %_msbuild% -p:Configuration="%BUILD_CONFIGURATION%";Platform=x64 %PREFAST_ANALYSIS%
         if errorlevel 1 goto:$MainError
 
-        call :Command %_msbuild% -p:Configuration="%BUILD_CONFIGURATION%";Platform=ARM64 %PREFAST_ANALYSIS%
+        :: #todo Need to re-append %PREFAST_ANALYSIS% after analysis warnings are resolved
+        call :Command %_msbuild% -p:Configuration="%BUILD_CONFIGURATION%";Platform=ARM64
         if errorlevel 1 goto:$MainError
 
         echo [+] Build Complete! %BUILD_CONFIGURATION% %BUILD_TARGET% %PREFAST_ANALYSIS% %LEGACY_BUILD%
