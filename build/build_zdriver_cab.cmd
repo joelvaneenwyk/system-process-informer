@@ -1,5 +1,5 @@
 @echo off
-@setlocal enableextensions
+@setlocal EnableExtensions
 
 rmdir /q /s %~dp0\output\cab
 del %~dp0\output\KSystemInformer.cab
