@@ -2,7 +2,7 @@
 goto:$Main
 
 :Command
-setlocal EnableExtensions EnableDelayedExpansion
+setlocal EnableDelayedExpansion
     set "_command=%*"
     set "_command=!_command:      = !"
     set "_command=!_command:    = !"
@@ -14,7 +14,11 @@ setlocal EnableExtensions EnableDelayedExpansion
         echo [command]!_command!
     )
     !_command!
-endlocal & exit /b %ERRORLEVEL%
+endlocal & (
+    set "SYSTEM_INFORMER_ERROR_LEVEL=%ERRORLEVEL%"
+    set "SYSTEM_INFORMER_LAST_COMMAND=%_command%"
+)
+exit /b %SYSTEM_INFORMER_ERROR_LEVEL%
 
 :SetDevEnv
     for /f "usebackq tokens=*" %%a in (`call "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -prerelease -products * -requires Microsoft.Component.MSBuild -property installationPath`) do (
@@ -28,32 +32,57 @@ endlocal & exit /b %ERRORLEVEL%
 
     if not exist "%VSINSTALLPATH%\VC\Auxiliary\Build\vcvarsall.bat" goto:$BuildError
     call "%VSINSTALLPATH%\VC\Auxiliary\Build\vcvarsall.bat" %~1
+goto:eof
+
+:TryRemoveDirectory
+    if exist "%~1" (
+       echo ##[cmd] rmdir /S /Q "%~1"
+       rmdir /S /Q "%~1"
+       echo Removed directory: '%~1'
+    )
+exit /b 0
+
+:TryRemoveIntermediateFiles
+    call :TryRemoveDirectory "tools\CustomBuildTool\bin\Release\net8.0-x64"
+    call :TryRemoveDirectory "tools\CustomBuildTool\bin\Release\net8.0-windows-x64"
+    call :TryRemoveDirectory "tools\CustomBuildTool\bin\Release\net8.0-windows10.0.22621.0-x64"
+    call :TryRemoveDirectory "tools\CustomBuildTool\bin\Release\net7.0-x64"
+    call :TryRemoveDirectory "tools\CustomBuildTool\bin\Debug"
+    call :TryRemoveDirectory "tools\CustomBuildTool\bin\x64"
+    call :TryRemoveDirectory "tools\CustomBuildTool\obj"
 exit /b
 
-:BuildSolution %arch% %solution% %target%
-setlocal
+:BuildSolution
+setlocal EnableDelayedExpansion
     goto:$BuildConfig
     :BuildConfig
+    setlocal EnableDelayedExpansion
        set "_config=%~1"
        set "_target=%~2"
        set "_msbuild_args=msbuild /m "%_solution%" -verbosity:normal -property:Configuration="%_config%" "
 
-       if "%_target%"=="" goto:$BuildConfigDefault
-           call :Command %_msbuild_args% -t:"Restore;Build" -property:Platform="%_target%"
-           if errorlevel 1 goto:$BuildConfigDone
-       goto:$BuildConfigDone
+       if "%_target%"=="" (
+           set "_target=x64"
+       )
+       call :Command %_msbuild_args% -t:"Restore" -property:Platform="!_target!"
+       if errorlevel 1 goto:$BuildConfigDone
 
-       :$BuildConfigDefault
-           call :Command %_msbuild_args% -property:Platform="Win32"
-           if errorlevel 1 goto:$BuildConfigDone
+       call :Command %_msbuild_args% -property:Platform="!_target!"
+       if errorlevel 1 goto:$BuildConfigDone
+       if "%~2"=="" goto:$BuildConfigDone
 
-           call :Command %_msbuild_args% -property:Platform="x64"
-           if errorlevel 1 goto:$BuildConfigDone
+       call :Command %_msbuild_args% -property:Platform="Win32"
+       if errorlevel 1 goto:$BuildConfigDone
 
-           call :Command %_msbuild_args% -property:Platform="ARM64"
-           if errorlevel 1 goto:$BuildConfigDone
+       call :Command %_msbuild_args% -property:Platform="ARM64"
+       if errorlevel 1 goto:$BuildConfigDone
+
        :$BuildConfigDone
-    exit /b %ERRORLEVEL%
+    endlocal & (
+        set "SYSTEM_INFORMER_ERROR_LEVEL=%ERRORLEVEL%"
+        set "SYSTEM_INFORMER_LAST_COMMAND=%_command%"
+    )
+    exit /b %SYSTEM_INFORMER_ERROR_LEVEL%
     :$BuildConfig
 
     set "_arch=%~1"
@@ -61,6 +90,7 @@ setlocal
     set "_target=%~3"
 
     call :SetDevEnv "%_arch%"
+    if errorlevel 1 goto:$BuildSolutionDone
 
     cd /d "%~dp0\..\"
 
@@ -71,37 +101,40 @@ setlocal
     if errorlevel 1 goto:$BuildSolutionDone
 
     :$BuildSolutionDone
-endlocal & exit /b %ERRORLEVEL%
-
-:Build
-setlocal
-    call :BuildSolution "amd64_arm64" "SystemInformer.sln"
-    if errorlevel 1 goto:$BuildDone
-
-    call :BuildSolution "amd64_arm64" "Plugins\Plugins.sln"
-    if errorlevel 1 goto:$BuildDone
-
-    call :BuildSolution "amd64_x86" "tools\fixlib\fixlib.sln" "x86"
-    if errorlevel 1 goto:$BuildDone
-
-    call :BuildSolution "amd64" "tools\GenerateZw\GenerateZw.sln" "Any CPU"
-    if errorlevel 1 goto:$BuildDone
-
-    :$BuildDone
-endlocal & exit /b %ERRORLEVEL%
+endlocal & (
+    set "SYSTEM_INFORMER_ERROR_LEVEL=%ERRORLEVEL%"
+    set "SYSTEM_INFORMER_LAST_COMMAND=%_command%"
+)
+exit /b %SYSTEM_INFORMER_ERROR_LEVEL%
 
 :$Main
 setlocal EnableExtensions
-    call :Build
+    call :TryRemoveIntermediateFiles
+
+    call :BuildSolution "amd64_arm64" "SystemInformer.sln"
+    if errorlevel 1 goto:$MainError
+
+    call :BuildSolution "amd64_arm64" "Plugins\Plugins.sln"
+    if errorlevel 1 goto:$MainError
+
+    call :BuildSolution "amd64_x86" "tools\fixlib\fixlib.sln" "x86"
+    if errorlevel 1 goto:$MainError
+
+    call :BuildSolution "amd64" "tools\GenerateZw\GenerateZw.sln" "Any CPU"
     if errorlevel 1 goto:$MainError
 
     echo Builds completed successfully!
     goto:$MainEnd
 
     :$MainError
-    echo [ERROR] Build failed.
-    if not "%SYSTEM_INFORMER_CI%"=="1" pause
-    goto:$MainEnd
+        echo [ERROR] Build failed. Last command: %SYSTEM_INFORMER_LAST_COMMAND% [Error: %ERRORLEVEL%]
+        if "%SYSTEM_INFORMER_CI%"=="1" goto:$MainEnd
 
-    :$MainEnd
-endlocal & exit /b %ERRORLEVEL%
+        :: If not running a CI build then pause so that user can inspect errors
+        pause
+:$MainEnd
+endlocal & (
+    set "SYSTEM_INFORMER_ERROR_LEVEL=%ERRORLEVEL%"
+    set "SYSTEM_INFORMER_LAST_COMMAND=%_command%"
+)
+exit /b %SYSTEM_INFORMER_ERROR_LEVEL%

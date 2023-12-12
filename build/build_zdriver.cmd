@@ -2,7 +2,7 @@
 goto:$Main
 
 :Command
-setlocal EnableExtensions EnableDelayedExpansion
+setlocal EnableDelayedExpansion
     set "_command=%*"
     set "_command=!_command:      = !"
     set "_command=!_command:    = !"
@@ -14,7 +14,11 @@ setlocal EnableExtensions EnableDelayedExpansion
         echo [command]!_command!
     )
     !_command!
-endlocal & exit /b %ERRORLEVEL%
+endlocal & (
+    set "SYSTEM_INFORMER_ERROR_LEVEL=%ERRORLEVEL%"
+    set "SYSTEM_INFORMER_LAST_COMMAND=%_command%"
+)
+exit /b %SYSTEM_INFORMER_ERROR_LEVEL%
 
 :$Main
 setlocal EnableExtensions
@@ -91,10 +95,14 @@ setlocal EnableExtensions
         goto:$MainError
 
     :$MainError
-        echo [ERROR] Build failed.
+        echo [ERROR] Build failed. Last command: %SYSTEM_INFORMER_LAST_COMMAND% [Error: %ERRORLEVEL%]
         if "%SYSTEM_INFORMER_CI%"=="1" goto:$MainEnd
 
         :: If not running a CI build then pause so that user can inspect errors
         pause
 :$MainEnd
-endlocal & exit /b %ERRORLEVEL%
+endlocal & (
+    set "SYSTEM_INFORMER_ERROR_LEVEL=%ERRORLEVEL%"
+    set "SYSTEM_INFORMER_LAST_COMMAND=%_command%"
+)
+exit /b %SYSTEM_INFORMER_ERROR_LEVEL%

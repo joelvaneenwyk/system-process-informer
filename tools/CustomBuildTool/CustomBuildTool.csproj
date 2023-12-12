@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -15,7 +15,7 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <MetadataUpdaterSupport>false</MetadataUpdaterSupport>
     <OutputType>Exe</OutputType>
-    <Platforms>x64;x86</Platforms>
+    <Platforms>AnyCPU</Platforms>
     <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
     <ProjectGuid>{CD644DF2-A658-4CBC-9497-CA5DD13CFEC3}</ProjectGuid>
     <PublishAot>true</PublishAot>
@@ -25,31 +25,22 @@
     <TrimUnusedDependencies>true</TrimUnusedDependencies>
     <UseSystemResourceKeys>true</UseSystemResourceKeys>
     <Version>1.0</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Title>System Informer - Custom Build Tool</Title>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Platform)'=='x86'">
-  <PlatformTarget>x86</PlatformTarget>
-    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
-    <IntDir>$(ProjectDir)obj\$(Configuration)\$(TargetFramework)-$(PlatformTarget)\</IntDir>
-    <OutDir>$(ProjectDir)bin\$(Configuration)\$(TargetFramework)-$(PlatformTarget)\</OutDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Platform)'=='x64'">
+  <PropertyGroup Condition="'$(Platform)'=='AnyCPU'">
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <IntDir>$(ProjectDir)obj\$(Configuration)\$(TargetFramework)-$(PlatformTarget)\</IntDir>
     <OutDir>$(ProjectDir)bin\$(Configuration)\$(TargetFramework)-$(PlatformTarget)\</OutDir>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <Optimize>False</Optimize>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <Optimize>False</Optimize>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <Optimize>True</Optimize>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
-    <Optimize>True</Optimize>
+    <DebugType>embedded</DebugType>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
     <None Include="app.manifest" />
