@@ -1,6 +1,17 @@
 @echo off
+goto:$Main
+
+:TryRemoveDirectory
+    if exist "%~1" (
+       echo rmdir /S /Q "%~1"
+       rmdir /S /Q "%~1"
+    )
+exit /b 0
+
+:$Main
 @setlocal enableextensions
-@cd /d "%~dp0\..\"
+set "ROOT_DIR=%~dp0\..\"
+@cd /d "%ROOT_DIR%"
 
 for /f "usebackq tokens=*" %%a in (`call "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -prerelease -products * -requires Microsoft.Component.MSBuild -property installationPath`) do (
    set "VSINSTALLPATH=%%a"
@@ -18,34 +29,23 @@ if exist "%VSINSTALLPATH%\VC\Auxiliary\Build\vcvarsall.bat" (
 )
 
 :: Pre-cleanup (required since dotnet doesn't cleanup)
-if exist "tools\CustomBuildTool\bin\Release\net7.0-x64" (
-   rmdir /S /Q "tools\CustomBuildTool\bin\Release\net7.0-x64"
-)
-if exist "tools\CustomBuildTool\bin\Debug" (
-   rmdir /S /Q "tools\CustomBuildTool\bin\Debug"
-)
-if exist "tools\CustomBuildTool\bin\x64" (
-   rmdir /S /Q "tools\CustomBuildTool\bin\x64"
-)
-if exist "tools\CustomBuildTool\obj" (
-   rmdir /S /Q "tools\CustomBuildTool\obj"
-)
+call :TryRemoveDirectory "tools\CustomBuildTool\bin\Release\net8.0-x64"
+call :TryRemoveDirectory "tools\CustomBuildTool\bin\Release\net7.0-x64"
+call :TryRemoveDirectory "tools\CustomBuildTool\bin\Debug"
+call :TryRemoveDirectory "tools\CustomBuildTool\bin\x64"
+call :TryRemoveDirectory "tools\CustomBuildTool\obj"
 
-dotnet publish tools\CustomBuildTool\CustomBuildTool.sln -c Release /p:PublishProfile=Properties\PublishProfiles\64bit.pubxml /p:ContinuousIntegrationBuild=true
+dotnet publish tools\CustomBuildTool\CustomBuildTool.sln ^
+    -c Release ^
+    /p:PublishProfile=Properties\PublishProfiles\64bit.pubxml ^
+    /p:ContinuousIntegrationBuild=true
 
 :: Post-cleanup (optional)
-if exist "tools\CustomBuildTool\bin\Release\net7.0-x64" (
-   rmdir /S /Q "tools\CustomBuildTool\bin\Release\net7.0-x64"
-)
-if exist "tools\CustomBuildTool\bin\Debug" (
-   rmdir /S /Q "tools\CustomBuildTool\bin\Debug"
-)
-if exist "tools\CustomBuildTool\bin\x64" (
-   rmdir /S /Q "tools\CustomBuildTool\bin\x64"
-)
-if exist "tools\CustomBuildTool\obj" (
-   rmdir /S /Q "tools\CustomBuildTool\obj"
-)
+call :TryRemoveDirectory "tools\CustomBuildTool\bin\Release\net8.0-x64"
+call :TryRemoveDirectory "tools\CustomBuildTool\bin\Release\net7.0-x64"
+call :TryRemoveDirectory "tools\CustomBuildTool\bin\Debug"
+call :TryRemoveDirectory "tools\CustomBuildTool\bin\x64"
+call :TryRemoveDirectory "tools\CustomBuildTool\obj"
 goto:eof
 
 :end
