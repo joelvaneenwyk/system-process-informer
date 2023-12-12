@@ -88,7 +88,7 @@
     <!-- ARM64 Builds -->
     <ItemDefinitionGroup Condition="'$(Platform)'=='ARM64'">
         <Link>
-            <AdditionalLibraryDirectories>$(SolutionDir)..\sdk\lib\arm64;$(SolutionDir)..\tools\thirdparty\bin\$(Configuration)$(PlatformArchitecture);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalLibraryDirectories>$(SolutionDir)..\sdk\lib\arm64;$(SolutionDir)..\tools\thirdparty\bin\$(Configuration)_$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
             <TargetMachine>MachineARM64</TargetMachine>
             <MinimumRequiredVersion>10.0</MinimumRequiredVersion>
         </Link>
@@ -101,7 +101,7 @@
             <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
         </ClCompile>
         <Link>
-            <AdditionalLibraryDirectories>$(SolutionDir)..\sdk\lib\i386;$(SolutionDir)..\tools\thirdparty\bin\$(Configuration)$(PlatformArchitecture);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalLibraryDirectories>$(SolutionDir)..\sdk\lib\i386;$(SolutionDir)..\tools\thirdparty\bin\$(Configuration)_$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
             <TargetMachine>MachineX86</TargetMachine>
             <MinimumRequiredVersion>6.01</MinimumRequiredVersion>
         </Link>
@@ -113,7 +113,7 @@
             <CallingConvention>StdCall</CallingConvention>
         </ClCompile>
         <Link>
-            <AdditionalLibraryDirectories>$(SolutionDir)..\sdk\lib\amd64;$(SolutionDir)..\tools\thirdparty\bin\$(Configuration)$(PlatformArchitecture);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalLibraryDirectories>$(SolutionDir)..\sdk\lib\amd64;$(SolutionDir)..\tools\thirdparty\bin\$(Configuration)_$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
             <TargetMachine>MachineX64</TargetMachine>
             <MinimumRequiredVersion>6.01</MinimumRequiredVersion>
         </Link>
