@@ -3,10 +3,21 @@ goto:$Main
 
 :TryRemoveDirectory
     if exist "%~1" (
-       echo rmdir /S /Q "%~1"
+       echo ##[cmd] rmdir /S /Q "%~1"
        rmdir /S /Q "%~1"
+       echo Removed directory: '%~1'
     )
 exit /b 0
+
+:TryRemoveIntermediateFiles
+    call :TryRemoveDirectory "tools\CustomBuildTool\bin\Release\net8.0-x64"
+    call :TryRemoveDirectory "tools\CustomBuildTool\bin\Release\net8.0-windows-x64"
+    call :TryRemoveDirectory "tools\CustomBuildTool\bin\Release\net8.0-windows10.0.22621.0-x64"
+    call :TryRemoveDirectory "tools\CustomBuildTool\bin\Release\net7.0-x64"
+    call :TryRemoveDirectory "tools\CustomBuildTool\bin\Debug"
+    call :TryRemoveDirectory "tools\CustomBuildTool\bin\x64"
+    call :TryRemoveDirectory "tools\CustomBuildTool\obj"
+exit /b
 
 :$Main
 @setlocal enableextensions
@@ -29,11 +40,7 @@ if exist "%VSINSTALLPATH%\VC\Auxiliary\Build\vcvarsall.bat" (
 )
 
 :: Pre-cleanup (required since dotnet doesn't cleanup)
-call :TryRemoveDirectory "tools\CustomBuildTool\bin\Release\net8.0-x64"
-call :TryRemoveDirectory "tools\CustomBuildTool\bin\Release\net7.0-x64"
-call :TryRemoveDirectory "tools\CustomBuildTool\bin\Debug"
-call :TryRemoveDirectory "tools\CustomBuildTool\bin\x64"
-call :TryRemoveDirectory "tools\CustomBuildTool\obj"
+call :TryRemoveIntermediateFiles
 
 dotnet publish tools\CustomBuildTool\CustomBuildTool.sln ^
     -c Release ^
@@ -41,11 +48,7 @@ dotnet publish tools\CustomBuildTool\CustomBuildTool.sln ^
     /p:ContinuousIntegrationBuild=true
 
 :: Post-cleanup (optional)
-call :TryRemoveDirectory "tools\CustomBuildTool\bin\Release\net8.0-x64"
-call :TryRemoveDirectory "tools\CustomBuildTool\bin\Release\net7.0-x64"
-call :TryRemoveDirectory "tools\CustomBuildTool\bin\Debug"
-call :TryRemoveDirectory "tools\CustomBuildTool\bin\x64"
-call :TryRemoveDirectory "tools\CustomBuildTool\obj"
+call :TryRemoveIntermediateFiles
 goto:eof
 
 :end
