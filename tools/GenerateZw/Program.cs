@@ -9,12 +9,15 @@
  *
  */
 
+using System;
+
 namespace GenerateZw
 {
     public static class Program
     {
         public static void Main(string[] args)
         {
+            ArgumentNullException.ThrowIfNull(args);
             ZwGen.Execute();
         }
     }
