@@ -16,6 +16,7 @@ SDV-*.*
 *.key
 *.sig
 *.orig
+.filenesting.json
 
 # Build results
 *.appx
