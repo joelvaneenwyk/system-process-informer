@@ -21,7 +21,7 @@
 #define PH_ARG_COMMANDVALUE 9
 #define PH_ARG_PRIORITY 25
 
-EXTERN_C PVOID __ImageBase;
+EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 ULONG CommandMode = 0;
 PPH_STRING CommandType = NULL;
 PPH_STRING CommandObject = NULL;
@@ -84,7 +84,7 @@ UINT32 PhCommandModeStart(
     NTSTATUS status = STATUS_UNSUCCESSFUL;
     PH_STRINGREF commandLine;
 
-    status = PhInitializePhLib(L"PhCmdTool", __ImageBase);
+    status = PhInitializePhLib(L"PhCmdTool", ((PVOID)&__ImageBase));
 
     if (!NT_SUCCESS(status))
         return status;
@@ -323,6 +323,9 @@ UINT32 PhCommandModeStart(
         }
         else if (PhEqualString2(CommandAction, L"delete", TRUE))
         {
+            status = PhOpenService(&serviceHandle, DELETE, PhGetStringRefZ(Config->ServiceName));
+
+            if (NT_SUCCESS(status))
             if (!(serviceHandle = PhOpenService(
                 CommandObject->Buffer,
                 DELETE

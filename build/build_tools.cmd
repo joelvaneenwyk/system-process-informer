@@ -1,12 +1,31 @@
 @echo off
 goto:$Main
 
-:TryRemoveDirectory
-    if exist "%~1" (
-       echo ##[cmd] rmdir /S /Q "%~1"
-       rmdir /S /Q "%~1"
-       echo Removed directory: '%~1'
+:Command
+setlocal EnableDelayedExpansion
+    set "_command=%*"
+    set "_command=!_command:      = !"
+    set "_command=!_command:    = !"
+    set "_command=!_command:   = !"
+    set "_command=!_command:  = !"
+    if "%GITHUB_ACTIONS%"=="" (
+        echo ##[cmd] !_command!
+    ) else (
+        echo [command]!_command!
     )
+    !_command!
+endlocal & (
+    set "SYSTEM_INFORMER_ERROR_LEVEL=%ERRORLEVEL%"
+    set "SYSTEM_INFORMER_LAST_COMMAND=%_command%"
+)
+exit /b %SYSTEM_INFORMER_ERROR_LEVEL%
+
+:TryRemoveDirectory
+    if not exist "%~1" goto:$TryRemoveDirectoryEnd
+    call :Command rmdir /S /Q "%~1"
+    if exist "%~1" goto:$TryRemoveDirectoryEnd
+    echo Removed directory: '%~1'
+    :$TryRemoveDirectoryEnd
 exit /b 0
 
 :TryRemoveIntermediateFiles
@@ -42,22 +61,21 @@ exit /b
     :: Pre-cleanup (required since dotnet doesn't cleanup)
     call :TryRemoveIntermediateFiles
 
-    dotnet publish tools\CustomBuildTool\CustomBuildTool.sln ^
+    call :Command dotnet publish "%~dp0..\tools\CustomBuildTool\CustomBuildTool.sln" ^
         -c Release ^
-        /p:PublishProfile=Properties\PublishProfiles\64bit.pubxml ^
+        /p:PublishProfile="%~dp0..\tools\CustomBuildTool\Properties\PublishProfiles\64bit.pubxml" ^
         /p:ContinuousIntegrationBuild=true
     if errorlevel 1 goto:$MainError
-
-    :: Post-cleanup (optional)
-    call :TryRemoveIntermediateFiles
     goto:$MainEnd
 
     :$MainError
     echo [ERROR] Build failed for 'CustomBuildTool' project.
-    if not "%SYSTEM_INFORMER_CI%"=="1" pause
+    if not "%SYSTEM_INFORMER_CI%"=="1" (
+        pause
+    )
 :$MainEnd
 endlocal & (
     set "SYSTEM_INFORMER_ERROR_LEVEL=%ERRORLEVEL%"
-    set "SYSTEM_INFORMER_LAST_COMMAND=%_command%"
+    set "SYSTEM_INFORMER_LAST_COMMAND=%SYSTEM_INFORMER_LAST_COMMAND%"
 )
 exit /b %SYSTEM_INFORMER_ERROR_LEVEL%

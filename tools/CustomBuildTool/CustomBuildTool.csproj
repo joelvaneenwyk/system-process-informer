@@ -15,8 +15,8 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <MetadataUpdaterSupport>false</MetadataUpdaterSupport>
     <OutputType>Exe</OutputType>
-    <Platforms>AnyCPU</Platforms>
-    <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
     <ProjectGuid>{CD644DF2-A658-4CBC-9497-CA5DD13CFEC3}</ProjectGuid>
     <PublishAot>true</PublishAot>
     <PublishTrimmed>true</PublishTrimmed>
@@ -25,7 +25,7 @@
     <TrimUnusedDependencies>true</TrimUnusedDependencies>
     <UseSystemResourceKeys>true</UseSystemResourceKeys>
     <Version>1.0</Version>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>System Informer - Custom Build Tool</Title>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <Trimming>full</Trimming>
@@ -35,6 +35,15 @@
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Platform)'=='AnyCPU'">
+    <IntDir>$(ProjectDir)obj\$(Configuration)_AnyCPU\</IntDir>
+    <OutDir>$(ProjectDir)bin\$(Configuration)_AnyCPU\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Platform)'=='x86'">
+    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
+    <IntDir>$(ProjectDir)obj\$(Configuration)\</IntDir>
+    <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Platform)'=='x64'">
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <IntDir>$(ProjectDir)obj\$(Configuration)\</IntDir>
     <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
@@ -47,7 +56,39 @@
     <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
     <NoWarn>1701;1702;1591</NoWarn>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <Optimize>False</Optimize>
+    <DebugType>portable</DebugType>
+    <WarningLevel>7</WarningLevel>
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+    <NoWarn>1701;1702;1591</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <Optimize>False</Optimize>
+    <DebugType>portable</DebugType>
+    <WarningLevel>7</WarningLevel>
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+    <NoWarn>1701;1702;1591</NoWarn>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <Optimize>True</Optimize>
+    <DebugType>embedded</DebugType>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningLevel>7</WarningLevel>
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+    <NoWarn>1701;1702;1591</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <Optimize>True</Optimize>
+    <DebugType>embedded</DebugType>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningLevel>7</WarningLevel>
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+    <NoWarn>1701;1702;1591</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Optimize>True</Optimize>
     <DebugType>embedded</DebugType>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
