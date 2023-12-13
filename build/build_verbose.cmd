@@ -117,12 +117,6 @@ setlocal EnableExtensions
     call :BuildSolution "amd64_arm64" "Plugins\Plugins.sln"
     if errorlevel 1 goto:$MainError
 
-    call :BuildSolution "amd64_x86" "tools\fixlib\fixlib.sln" "x86"
-    if errorlevel 1 goto:$MainError
-
-    call :BuildSolution "amd64" "tools\GenerateZw\GenerateZw.sln" "Any CPU"
-    if errorlevel 1 goto:$MainError
-
     echo Builds completed successfully!
     goto:$MainEnd
 
