@@ -9,6 +9,7 @@ smv*.log
 *.sdv
 SDV-*.*
 *sdv*.cmd
+.sarif/
 
 # User-specific files
 *.suo
