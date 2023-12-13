@@ -1,7 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <IntDir>$(ProjectDir)obj\$(Configuration)\$(TargetFramework)-$(PlatformTarget)\</IntDir>
-    <OutDir>$(ProjectDir)bin\$(Configuration)\$(TargetFramework)-$(PlatformTarget)\</OutDir>
     <OutputType>Exe</OutputType>
     <PublishAot>false</PublishAot>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
@@ -11,11 +9,12 @@
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <UserSecretsId>cf0fbf1c-0c55-475f-b8ab-420cf242f30b</UserSecretsId>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Platform)'=='AnyCPU'">
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <IntDir>$(ProjectDir)obj\$(Configuration)_AnyCPU\</IntDir>
-    <OutDir>$(ProjectDir)bin\$(Configuration)_AnyCPU\</OutDir>
+    <IntDir>$(ProjectDir)obj\$(Configuration)\</IntDir>
+    <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Platform)'=='x86'">
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
