@@ -55,6 +55,7 @@ SDV-*.*
 # Visual C++ cache folders
 ipch/
 .vs/
+x64/
 
 # Visual Studio profiler
 *.psess
