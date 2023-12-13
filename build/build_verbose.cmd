@@ -56,21 +56,18 @@ exit /b
 setlocal EnableDelayedExpansion
     goto:$BuildConfig
     :BuildConfig
-    setlocal EnableDelayedExpansion
        set "_solution_path=%~dp1\%~2"
        set "_config=%~3"
        set "_target=%~4"
        set "_msbuild_args=msbuild /m "%_solution_path%" -verbosity:normal -property:Configuration="%_config%" "
 
-       if "%_target%"=="" (
-           set "_target=x64"
-       )
-       call :Command %_msbuild_args% -t:"Restore" -property:Platform="!_target!"
+       call :TryRemoveIntermediateFiles
+
+       call :Command %_msbuild_args% -t:"Restore"
        if errorlevel 1 goto:$BuildConfigDone
 
-       call :Command %_msbuild_args% -property:Platform="!_target!"
+       call :Command %_msbuild_args% -property:Platform="x64"
        if errorlevel 1 goto:$BuildConfigDone
-       if "%~2"=="" goto:$BuildConfigDone
 
        call :Command %_msbuild_args% -property:Platform="Win32"
        if errorlevel 1 goto:$BuildConfigDone
@@ -79,11 +76,7 @@ setlocal EnableDelayedExpansion
        if errorlevel 1 goto:$BuildConfigDone
 
        :$BuildConfigDone
-    endlocal & (
-        set "SYSTEM_INFORMER_ERROR_LEVEL=%ERRORLEVEL%"
-        set "SYSTEM_INFORMER_LAST_COMMAND=%_command%"
-    )
-    exit /b %SYSTEM_INFORMER_ERROR_LEVEL%
+    exit /b %ERRORLEVEL%
     :$BuildConfig
 
     set "_root=%~dp0..\"
@@ -109,8 +102,6 @@ exit /b %SYSTEM_INFORMER_ERROR_LEVEL%
 
 :$Main
 setlocal EnableExtensions
-    call :TryRemoveIntermediateFiles
-
     call :BuildSolution "amd64_arm64" "SystemInformer.sln"
     if errorlevel 1 goto:$MainError
 
