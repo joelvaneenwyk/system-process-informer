@@ -19,6 +19,7 @@
         "pushd",
         "robocopy",
         "setlocal",
+        "signtool",
         "testsigning",
         "thirdparty",
         "usebackq",
