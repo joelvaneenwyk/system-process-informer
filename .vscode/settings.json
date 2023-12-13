@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "app.manifest": "xml",
+        "*.rc": "rc-script"
+    }
+}
