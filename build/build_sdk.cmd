@@ -1,15 +1,16 @@
 @echo off
-@setlocal enableextensions
-@cd /d "%~dp0\..\"
+setlocal EnableExtensions
+    cd /d "%~dp0\..\"
 
-start /B /W "" "tools\CustomBuildTool\bin\Release\CustomBuildTool.exe" "-sdk"
-if errorlevel 1 goto:$Error
-echo [INFO] Build completed successfully.
-goto:$MainEnd
+    start /B /W "" "tools\CustomBuildTool\bin\Release\CustomBuildTool.exe" "-sdk"
+    if errorlevel 1 goto:$Error
 
-:$Error
-echo [ERROR] Build failed.
-if not "%SYSTEM_INFORMER_CI%"=="1" pause
+    echo [INFO] Build completed successfully.
+    goto:$MainEnd
+
+    :$Error
+    echo [ERROR] Build failed.
+    if not "%SYSTEM_INFORMER_CI%"=="1" pause
 
 :$MainEnd
 endlocal & (

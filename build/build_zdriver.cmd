@@ -27,40 +27,40 @@ setlocal EnableExtensions
     set "BUILD_ROOT=%~dp0\..\"
     set "PREFAST_ANALYSIS="
 
-    :argloop
+    :argLoop
     if not "%1"=="" (
         if "%1"=="debug" (
             set BUILD_CONFIGURATION=Debug
             shift
-            goto :argloop
+            goto :argLoop
         )
         if "%1"=="release" (
             set BUILD_CONFIGURATION=Release
             shift
-            goto :argloop
+            goto :argLoop
         )
         if "%1"=="build" (
             set BUILD_TARGET=Build
             shift
-            goto :argloop
+            goto :argLoop
         )
         if "%1"=="rebuild" (
             set BUILD_TARGET=Rebuild
             shift
-            goto :argloop
+            goto :argLoop
         )
         if "%1"=="clean" (
             set BUILD_TARGET=Clean
             shift
-            goto :argloop
+            goto :argLoop
         )
         if "%1"=="prefast" (
             set PREFAST_ANALYSIS=-p:RunCodeAnalysis=true -p:CodeAnalysisTreatWarningsAsErrors=true
             shift
-            goto :argloop
+            goto :argLoop
         )
         shift
-        goto :argloop
+        goto :argLoop
     )
 
     for /f "usebackq tokens=*" %%A in (`call "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.Component.MSBuild -property installationPath`) do (
