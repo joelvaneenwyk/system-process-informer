@@ -25,7 +25,7 @@
     <TrimUnusedDependencies>true</TrimUnusedDependencies>
     <UseSystemResourceKeys>true</UseSystemResourceKeys>
     <Version>1.0</Version>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Title>System Informer - Custom Build Tool</Title>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <Trimming>full</Trimming>
