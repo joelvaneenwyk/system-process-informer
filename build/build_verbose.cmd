@@ -57,9 +57,10 @@ setlocal EnableDelayedExpansion
     goto:$BuildConfig
     :BuildConfig
     setlocal EnableDelayedExpansion
-       set "_config=%~1"
-       set "_target=%~2"
-       set "_msbuild_args=msbuild /m "%_solution%" -verbosity:normal -property:Configuration="%_config%" "
+       set "_solution_path=%~dp1\%~2"
+       set "_config=%~3"
+       set "_target=%~4"
+       set "_msbuild_args=msbuild /m "%_solution_path%" -verbosity:normal -property:Configuration="%_config%" "
 
        if "%_target%"=="" (
            set "_target=x64"
@@ -85,6 +86,7 @@ setlocal EnableDelayedExpansion
     exit /b %SYSTEM_INFORMER_ERROR_LEVEL%
     :$BuildConfig
 
+    set "_root=%~dp0..\"
     set "_arch=%~1"
     set "_solution=%~2"
     set "_target=%~3"
@@ -92,12 +94,10 @@ setlocal EnableDelayedExpansion
     call :SetDevEnv "%_arch%"
     if errorlevel 1 goto:$BuildSolutionDone
 
-    cd /d "%~dp0\..\"
-
-    call :BuildConfig "Debug" "%_target%"
+    call :BuildConfig "%_root%" "%_solution%" "Debug" "%_target%"
     if errorlevel 1 goto:$BuildSolutionDone
 
-    call :BuildConfig "Release" "%_target%"
+    call :BuildConfig "%_root%" "%_solution%" "Release" "%_target%"
     if errorlevel 1 goto:$BuildSolutionDone
 
     :$BuildSolutionDone
