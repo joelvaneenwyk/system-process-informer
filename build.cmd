@@ -5,7 +5,7 @@ goto:$Main
 exit /b 0
 
 :Command
-setlocal EnableExtensions EnableDelayedExpansion
+setlocal EnableDelayedExpansion
     set "_command=%*"
     set "_command=!_command:      = !"
     set "_command=!_command:    = !"
@@ -18,12 +18,13 @@ setlocal EnableExtensions EnableDelayedExpansion
     )
     !_command!
 endlocal & (
+    set "SYSTEM_INFORMER_ERROR_LEVEL=%ERRORLEVEL%"
     set "SYSTEM_INFORMER_LAST_COMMAND=%_command%"
-    exit /b %ERRORLEVEL%
 )
+exit /b %SYSTEM_INFORMER_ERROR_LEVEL%
 
 :$Main
-setlocal EnableExtensions EnableDelayedExpansion
+setlocal EnableExtensions
     call :ClearError
 
     set SYSTEM_INFORMER_CI=1
@@ -50,7 +51,7 @@ setlocal EnableExtensions EnableDelayedExpansion
     goto:$MainDone
 
     :$MainError
-    echo [ERROR] Build failed. Last command: "!SYSTEM_INFORMER_LAST_COMMAND!" [Error: %ERRORLEVEL%]
+    echo [ERROR] Build failed. Last command: %SYSTEM_INFORMER_LAST_COMMAND% [Error: %ERRORLEVEL%]
 
     :$MainDone
 endlocal & exit /b %ERRORLEVEL%
