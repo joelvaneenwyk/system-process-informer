@@ -1,4 +1,8 @@
 {
+    "files.associations": {
+        "app.manifest": "xml",
+        "*.rc": "rc-script"
+    },
     "cSpell.words": [
         "argloop",
         "bcdedit",
