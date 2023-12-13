@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{E8CD0A41-1537-4EA6-98AC-E80CD59C478E}</ProjectGuid>
+    <ProjectGuid>{251DEE1D-6FCA-432B-9A07-B3849EA6C8AB}</ProjectGuid>
     <RootNamespace>CustomSignTool</RootNamespace>
     <Keyword>Win32Proj</Keyword>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
