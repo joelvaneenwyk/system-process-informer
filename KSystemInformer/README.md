@@ -32,7 +32,8 @@ or exploitation is detected the client is denied access.
 Developers may suppress protections and state requirements by disabling secure
 boot (if applicable) then enabling debug and test signing mode. Doing this will
 permit the client process to be debugged and enables use of test signing keys.
-```
+
+```batch
 bcdedit /debug on
 bcdedit /set testsigning on
 ```
