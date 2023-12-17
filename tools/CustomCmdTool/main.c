@@ -323,6 +323,9 @@ UINT32 PhCommandModeStart(
         }
         else if (PhEqualString2(CommandAction, L"delete", TRUE))
         {
+            status = PhOpenService(&serviceHandle, DELETE, PhGetStringRefZ(Config->ServiceName));
+
+            if (NT_SUCCESS(status))
             if (!(serviceHandle = PhOpenService(
                 CommandObject->Buffer,
                 DELETE

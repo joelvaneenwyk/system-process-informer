@@ -126,7 +126,7 @@ NTSTATUS InitializeFileName(
 #endif
     PPH_STRING fileName;
 
-    fileName = PhGetApplicationDirectoryFileNameWin32(&fileNameStringRef);
+    fileName = PhGetApplicationDirectoryFileName(&fileNameStringRef);
     PhMoveReference(&fileName, PhGetFullPath(fileName->Buffer, NULL));
 
     *FileName = fileName;
