@@ -45,7 +45,7 @@ static INT_PTR CALLBACK PhpAboutDlgProc(
 
 #if (PHAPP_VERSION_REVISION != 0)
             appName = PhFormatString(
-                L"System Informer %lu.%lu.%lu (<a href=\"https://github.com/winsiderss/systeminformer/commit/%hs\">%hs</a>)",
+                L"System Informer %lu.%lu.%lu (<a href=\"https://github.com/joelvaneenwyk/system-informer/commit/%hs\">%hs</a>)",
                 PHAPP_VERSION_MAJOR,
                 PHAPP_VERSION_MINOR,
                 PHAPP_VERSION_REVISION,
@@ -70,7 +70,7 @@ static INT_PTR CALLBACK PhpAboutDlgProc(
                 L"    <a href=\"https://github.com/jxy-s\">jxy-s</a> - Johnny Shaw\n"
                 L"    <a href=\"https://github.com/ionescu007\">ionescu007</a> - Alex Ionescu\n"
                 L"    <a href=\"https://github.com/yardenshafir\">yardenshafir</a> - Yarden Shafir\n"
-                L"    <a href=\"https://github.com/winsiderss/systeminformer/graphs/contributors\">Contributors</a> - thank you for your additions!\n"
+                L"    <a href=\"https://github.com/joelvaneenwyk/system-informer/graphs/contributors\">Contributors</a> - thank you for your additions!\n"
                 L"    Donors - thank you for your support!\n\n"
                 L"System Informer uses the following components:\n"
                 L"    <a href=\"https://github.com/GameTechDev/PresentMon\">PresentMon</a> by Intel Corporation\n"
