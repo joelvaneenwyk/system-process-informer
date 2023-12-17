@@ -25,7 +25,7 @@
 #define ARG_SIG 2
 #define ARG_HEX 3
 
-EXTERN_C PVOID __ImageBase;
+EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 PPH_STRING CstCommand = NULL;
 PPH_STRING CstArgument1 = NULL;
 PPH_STRING CstArgument2 = NULL;
@@ -239,7 +239,7 @@ int __cdecl wmain(int argc, wchar_t *argv[])
     NTSTATUS status;
     PH_STRINGREF commandLine;
 
-    if (!NT_SUCCESS(PhInitializePhLib(L"CustomSignTool", __ImageBase)))
+    if (!NT_SUCCESS(PhInitializePhLib(L"CustomSignTool", ((PVOID)&__ImageBase))))
         return EXIT_FAILURE;
 
     if (!NT_SUCCESS(PhGetProcessCommandLineStringRef(&commandLine)))
