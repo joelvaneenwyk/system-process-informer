@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0"
+    xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
     <!-- General -->
     <PropertyGroup Label="Globals">
-        <OutDir>$(SolutionDir)..\bin\$(Configuration)$(PlatformArchitecture)\plugins\</OutDir>
-        <IntDir>$(ProjectDir)obj\$(Configuration)$(PlatformArchitecture)\</IntDir>
+        <OutDir>$(ProjectDir)\..\..\bin\$(Configuration)_$(Platform)\plugins\</OutDir>
+        <IntDir>$(ProjectDir)obj\$(Configuration)_$(Platform)\</IntDir>
         <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
         <UseDebugLibraries Condition="'$(Configuration)'=='Debug'">true</UseDebugLibraries>
         <UseDebugLibraries Condition="'$(Configuration)'=='Release'">false</UseDebugLibraries>
@@ -14,15 +15,15 @@
         <WholeProgramOptimization Condition="'$(Configuration)'=='Release'">true</WholeProgramOptimization>
         <GenerateManifest>false</GenerateManifest>
         <!-- Debugging -->
-        <LocalDebuggerCommand>$(SolutionDir)..\bin\$(Configuration)$(PlatformArchitecture)\SystemInformer.exe</LocalDebuggerCommand>
-        <LocalDebuggerWorkingDirectory>$(SolutionDir)..\bin\$(Configuration)$(PlatformArchitecture)\</LocalDebuggerWorkingDirectory>
+        <LocalDebuggerCommand>$(ProjectDir)\..\..\bin\$(Configuration)_$(Platform)\SystemInformer.exe</LocalDebuggerCommand>
+        <LocalDebuggerWorkingDirectory>$(ProjectDir)\..\..\bin\$(Configuration)_$(Platform)\</LocalDebuggerWorkingDirectory>
         <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     </PropertyGroup>
 
     <!-- Global -->
     <ItemDefinitionGroup>
         <ClCompile>
-            <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)..\sdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <AdditionalIncludeDirectories>$(ProjectDir)\..\include;$(ProjectDir)\..\..\sdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
             <TreatWarningAsError>true</TreatWarningAsError>
             <WarningLevel>Level3</WarningLevel>
             <SDLCheck>true</SDLCheck>
@@ -45,7 +46,7 @@
             <Path>$(IntDir)$(MSBuildProjectName).log</Path>
         </BuildLog>
         <PostBuildEvent>
-            <Command>"$(SolutionDir)..\tools\CustomBuildTool\bin\Release\CustomBuildTool.exe" -sign_plugin $(OutDir)$(TargetName)$(TargetExt)</Command>
+            <Command>"$(ProjectDir)\..\..\tools\CustomBuildTool\bin\Release\CustomBuildTool.exe" -sign_plugin $(OutDir)$(TargetName)$(TargetExt)</Command>
         </PostBuildEvent>
         <ResourceCompile>
             <AdditionalOptions>/c 65001 %(AdditionalOptions)</AdditionalOptions>
@@ -88,7 +89,7 @@
     <!-- ARM64 Builds -->
     <ItemDefinitionGroup Condition="'$(Platform)'=='ARM64'">
         <Link>
-            <AdditionalLibraryDirectories>$(SolutionDir)..\sdk\lib\arm64;$(SolutionDir)..\tools\thirdparty\bin\$(Configuration)$(PlatformArchitecture);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalLibraryDirectories>$(ProjectDir)\..\..\sdk\lib\arm64;$(ProjectDir)\..\..\bin\$(Configuration)_$(Platform);$(ProjectDir)\..\..\tools\thirdparty\bin\$(Configuration)_$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
             <TargetMachine>MachineARM64</TargetMachine>
             <MinimumRequiredVersion>10.0</MinimumRequiredVersion>
         </Link>
@@ -101,7 +102,7 @@
             <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
         </ClCompile>
         <Link>
-            <AdditionalLibraryDirectories>$(SolutionDir)..\sdk\lib\i386;$(SolutionDir)..\tools\thirdparty\bin\$(Configuration)$(PlatformArchitecture);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalLibraryDirectories>$(ProjectDir)\..\..\sdk\lib\i386;$(ProjectDir)\..\..\bin\$(Configuration)_$(Platform);$(ProjectDir)\..\..\tools\thirdparty\bin\$(Configuration)_$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
             <TargetMachine>MachineX86</TargetMachine>
             <MinimumRequiredVersion>6.01</MinimumRequiredVersion>
         </Link>
@@ -113,7 +114,7 @@
             <CallingConvention>StdCall</CallingConvention>
         </ClCompile>
         <Link>
-            <AdditionalLibraryDirectories>$(SolutionDir)..\sdk\lib\amd64;$(SolutionDir)..\tools\thirdparty\bin\$(Configuration)$(PlatformArchitecture);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalLibraryDirectories>$(ProjectDir)\..\..\sdk\lib\amd64;$(ProjectDir)\..\..\bin\$(Configuration)_$(Platform);$(ProjectDir)\..\..\tools\thirdparty\bin\$(Configuration)_$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
             <TargetMachine>MachineX64</TargetMachine>
             <MinimumRequiredVersion>6.01</MinimumRequiredVersion>
         </Link>
