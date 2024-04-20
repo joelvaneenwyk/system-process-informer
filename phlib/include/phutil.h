@@ -704,6 +704,16 @@ PhFormatGuid(
 PHLIBAPI
 NTSTATUS
 NTAPI
+PhFormatGuidToBuffer(
+    _In_ PGUID Guid,
+    _Writable_bytes_(BufferLength) _When_(BufferLength != 0, _Notnull_) PWCHAR Buffer,
+    _In_opt_ USHORT BufferLength,
+    _Out_opt_ PSIZE_T ReturnLength
+    );
+
+PHLIBAPI
+NTSTATUS
+NTAPI
 PhStringToGuid(
     _In_ PPH_STRINGREF GuidString,
     _Out_ PGUID Guid
@@ -1300,8 +1310,7 @@ PhShellExecute(
 #define PH_SHELL_EXECUTE_PUMP_MESSAGES 0x2
 
 PHLIBAPI
-_Success_(return)
-BOOLEAN
+NTSTATUS
 NTAPI
 PhShellExecuteEx(
     _In_opt_ HWND WindowHandle,
@@ -1818,6 +1827,14 @@ HWND
 NTAPI
 PhHungWindowFromGhostWindow(
     _In_ HWND WindowHandle
+    );
+
+PHLIBAPI
+NTSTATUS
+PhGetFileData(
+    _In_ HANDLE FileHandle,
+    _Out_ PVOID* Buffer,
+    _Out_ PULONG BufferLength
     );
 
 PHLIBAPI

@@ -86,30 +86,33 @@ PPH_STRING PhGetProcessItemImageTypeText(
     )
 {
     USHORT architecture = IMAGE_FILE_MACHINE_UNKNOWN;
+    ULONG chpeVersion = 0;
     PWSTR arch = L"";
     PWSTR bits = L"";
 
+    if (ProcessItem->FileName)
     {
-        USHORT processArchitecture;
+        PH_MAPPED_IMAGE mappedImage;
 
-        if (
-            WindowsVersion >= WINDOWS_11 && ProcessItem->QueryHandle &&
-            NT_SUCCESS(PhGetProcessArchitecture(ProcessItem->QueryHandle, &processArchitecture))
-            )
+#ifdef _ARM64_
+        if (NT_SUCCESS(PhLoadMappedImageEx(&ProcessItem->FileName->sr, NULL, &mappedImage)))
         {
-            architecture = processArchitecture;
+            architecture = mappedImage.NtHeaders->FileHeader.Machine;
+            if (architecture == IMAGE_FILE_MACHINE_AMD64 || architecture == IMAGE_FILE_MACHINE_ARM64)
+                chpeVersion = PhGetMappedImageCHPEVersion(&mappedImage);
+            PhUnloadMappedImage(&mappedImage);
         }
-        else if (ProcessItem->FileName)
+#else
+        if (NT_SUCCESS(PhLoadMappedImageHeaderPageSize(&ProcessItem->FileName->sr, NULL, &mappedImage)))
         {
-            PH_MAPPED_IMAGE mappedImage;
-
-            if (NT_SUCCESS(PhLoadMappedImageHeaderPageSize(&ProcessItem->FileName->sr, NULL, &mappedImage)))
-            {
-                architecture = mappedImage.NtHeaders->FileHeader.Machine;
-                PhUnloadMappedImage(&mappedImage);
-            }
+            architecture = mappedImage.NtHeaders->FileHeader.Machine;
+            PhUnloadMappedImage(&mappedImage);
         }
+#endif
     }
+
+    if (architecture == IMAGE_FILE_MACHINE_UNKNOWN)
+        PhGetProcessArchitecture(ProcessItem->QueryHandle, &architecture);
 
     switch (architecture)
     {
@@ -117,14 +120,16 @@ PPH_STRING PhGetProcessItemImageTypeText(
         arch = L"I386 ";
         break;
     case IMAGE_FILE_MACHINE_AMD64:
-        arch = L"AMD64 ";
+        arch = chpeVersion ? L"AMD64 (ARM64X) " : L"AMD64 ";
         break;
     case IMAGE_FILE_MACHINE_ARMNT:
         arch = L"ARM ";
         break;
     case IMAGE_FILE_MACHINE_ARM64:
-        arch = L"ARM64 ";
+        arch = chpeVersion ? L"ARM64 (ARM64X) " : L"ARM64 ";
         break;
+    default:
+        arch = L"N/A ";
     }
 
 #if _WIN64
@@ -132,9 +137,6 @@ PPH_STRING PhGetProcessItemImageTypeText(
 #else
     bits = L"(32-bit)";
 #endif
-
-    if (arch[0] == UNICODE_NULL && bits[0] == UNICODE_NULL)
-        return PhCreateString(L"N/A");
 
     return PhConcatStrings2(arch, bits);
 }
