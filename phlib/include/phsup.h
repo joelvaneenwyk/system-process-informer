@@ -479,7 +479,7 @@ FORCEINLINE VOID PhPrintPointer(
 #ifdef _WIN64
     _ui64tow_s((ULONG64)Pointer, &Destination[2], PH_PTR_STR_LEN_1, 16);
 #else
-    _ultow((ULONG)Pointer, &Destination[2], 16);
+    _ultow_s((ULONG)Pointer, &Destination[2], PH_PTR_STR_LEN_1, 16);
 #endif
 }
 
@@ -566,7 +566,7 @@ FORCEINLINE VOID PhProbeAddress(
 {
     if (UserLength != 0)
     {
-        if (((ULONG_PTR)UserAddress & (Alignment - 1)) != 0)
+        if (((ULONG_PTR)UserAddress & ((unsigned long long)(Alignment) - 1)) != 0)
             PhRaiseStatus(STATUS_DATATYPE_MISALIGNMENT);
 
         if (
