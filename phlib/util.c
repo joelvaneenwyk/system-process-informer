@@ -1920,6 +1920,43 @@ PPH_STRING PhFormatUInt64Prefix(
     return PhFormat(format, 2, 0);
 }
 
+PPH_STRING PhFormatUInt64BitratePrefix(
+    _In_ ULONG64 Value,
+    _In_ BOOLEAN GroupDigits
+    )
+{
+    static const PH_STRINGREF SiPrefixUnitNamesCounted[7] =
+    {
+        PH_STRINGREF_INIT(L" Bps"),
+        PH_STRINGREF_INIT(L" Kbps"),
+        PH_STRINGREF_INIT(L" Mbps"),
+        PH_STRINGREF_INIT(L" Gbps"),
+        PH_STRINGREF_INIT(L" Tbps"),
+        PH_STRINGREF_INIT(L" Pbps"),
+        PH_STRINGREF_INIT(L" Ebps")
+    };
+    DOUBLE number = (DOUBLE)Value;
+    ULONG i = 0;
+    PH_FORMAT format[2];
+
+    while (
+        number >= 1000 &&
+        i < RTL_NUMBER_OF(SiPrefixUnitNamesCounted) &&
+        i < PhMaxSizeUnit
+        )
+    {
+        number /= 1000;
+        i++;
+    }
+
+    format[0].Type = DoubleFormatType | FormatUsePrecision | (GroupDigits ? FormatGroupDigits : 0);
+    format[0].Precision = 1;
+    format[0].u.Double = number;
+    PhInitFormatSR(&format[1], SiPrefixUnitNamesCounted[i]);
+
+    return PhFormat(format, 2, 0);
+}
+
 PPH_STRING PhFormatDecimal(
     _In_ PWSTR Value,
     _In_ ULONG FractionalDigits,
@@ -2020,6 +2057,62 @@ PPH_STRING PhFormatGuid(
     RtlFreeUnicodeString(&unicodeString);
 
     return string;
+}
+
+/**
+ * Converts a UUID to its string representation.
+ *
+ * \param Guid A UUID.
+ * \param Buffer A buffer. If NULL, no data is written.
+ * \param BufferLength The number of bytes available in Buffer, including space for the null terminator.
+ * \param ReturnLength The number of bytes required to hold the string, including the null terminator.
+ */
+NTSTATUS PhFormatGuidToBuffer(
+    _In_ PGUID Guid,
+    _Writable_bytes_(BufferLength) _When_(BufferLength != 0, _Notnull_) PWCHAR Buffer,
+    _In_opt_ USHORT BufferLength,
+    _Out_opt_ PSIZE_T ReturnLength
+    )
+{
+    static PH_INITONCE initOnce = PH_INITONCE_INIT;
+    static NTSTATUS (NTAPI* RtlStringFromGUIDEx_I)(
+        _In_ PGUID Guid,
+        _Inout_ PUNICODE_STRING GuidString,
+        _In_ BOOLEAN AllocateGuidString
+        ) = NULL;
+    NTSTATUS status;
+    UNICODE_STRING unicodeString;
+
+    if (PhBeginInitOnce(&initOnce))
+    {
+        if (WindowsVersion >= WINDOWS_10)
+        {
+            RtlStringFromGUIDEx_I = PhGetDllProcedureAddress(L"ntdll.dll", "RtlStringFromGUIDEx", 0);
+        }
+
+        PhEndInitOnce(&initOnce);
+    }
+
+    if (!RtlStringFromGUIDEx_I)
+        return STATUS_PROCEDURE_NOT_FOUND;
+
+    RtlInitEmptyUnicodeString(&unicodeString, Buffer, BufferLength);
+
+    status = RtlStringFromGUIDEx_I(
+        Guid,
+        &unicodeString,
+        FALSE
+        );
+
+    if (NT_SUCCESS(status))
+    {
+        if (ReturnLength)
+        {
+            *ReturnLength = unicodeString.Length + sizeof(UNICODE_NULL);
+        }
+    }
+
+    return status;
 }
 
 NTSTATUS PhStringToGuid(
@@ -3375,7 +3468,7 @@ PPH_STRING PhGetTemporaryDirectoryRandomAlphaFileName(
     PH_STRINGREF randomAlphaString;
     WCHAR randomAlphaStringBuffer[33] = L"";
 
-    PhGenerateRandomAlphaString(randomAlphaStringBuffer, ARRAYSIZE(randomAlphaStringBuffer));
+    PhGenerateRandomAlphaString(randomAlphaStringBuffer, RTL_NUMBER_OF(randomAlphaStringBuffer));
     randomAlphaStringBuffer[0] = OBJ_NAME_PATH_SEPARATOR;
     randomAlphaString.Buffer = randomAlphaStringBuffer;
     randomAlphaString.Length = sizeof(randomAlphaStringBuffer) - sizeof(UNICODE_NULL);
@@ -4472,11 +4565,12 @@ NTSTATUS PhCreateProcessAsUser(
         WINSTATIONUSERTOKEN userToken;
         ULONG returnLength;
 
-        if (!WinStationQueryInformationW_Import())
-            return STATUS_PROCEDURE_NOT_FOUND;
+        memset(&userToken, 0, sizeof(WINSTATIONUSERTOKEN));
+        //userToken.ProcessId = NtCurrentProcessId();
+        //userToken.ThreadId = NtCurrentThreadId();
 
-        if (!WinStationQueryInformationW_Import()(
-            NULL,
+        if (!WinStationQueryInformationW(
+            WINSTATION_CURRENT_SERVER,
             Information->SessionIdWithToken,
             WinStationUserToken,
             &userToken,
@@ -5014,8 +5108,7 @@ VOID PhShellExecute(
  * after the application is started.
  * \param ProcessHandle A variable which receives a handle to the new process.
  */
-_Success_(return)
-BOOLEAN PhShellExecuteEx(
+NTSTATUS PhShellExecuteEx(
     _In_opt_ HWND WindowHandle,
     _In_ PWSTR FileName,
     _In_opt_ PWSTR Parameters,
@@ -5026,32 +5119,36 @@ BOOLEAN PhShellExecuteEx(
     _Out_opt_ PHANDLE ProcessHandle
     )
 {
-    SHELLEXECUTEINFO info = { sizeof(SHELLEXECUTEINFO) };
+    SHELLEXECUTEINFO info;
 
+    memset(&info, 0, sizeof(SHELLEXECUTEINFO));
+    info.cbSize = sizeof(SHELLEXECUTEINFO);
+    info.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_NOASYNC | SEE_MASK_FLAG_NO_UI | SEE_MASK_NOZONECHECKS;
+    info.hwnd = WindowHandle;
     info.lpFile = FileName;
     info.lpParameters = Parameters;
     info.lpDirectory = Directory;
-    info.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_FLAG_NO_UI | SEE_MASK_NOASYNC | SEE_MASK_NOZONECHECKS;
     info.nShow = ShowWindowType;
-    info.hwnd = WindowHandle;
 
-    if (Flags & PH_SHELL_EXECUTE_ADMIN)
+    if (FlagOn(Flags, PH_SHELL_EXECUTE_ADMIN))
+    {
         info.lpVerb = L"runas";
+    }
 
     if (PhShellExecuteWin32(&info))
     {
         if (Timeout)
         {
-            if (!(Flags & PH_SHELL_EXECUTE_PUMP_MESSAGES))
+            if (FlagOn(Flags, PH_SHELL_EXECUTE_PUMP_MESSAGES))
+            {
+                PhWaitForMultipleObjectsAndPump(NULL, 1, &info.hProcess, Timeout, QS_ALLEVENTS);
+            }
+            else
             {
                 if (info.hProcess)
                 {
                     PhWaitForSingleObject(info.hProcess, PhTimeoutFromMillisecondsEx(Timeout));
                 }
-            }
-            else
-            {
-                PhWaitForMultipleObjectsAndPump(NULL, 1, &info.hProcess, Timeout, QS_ALLEVENTS);
             }
         }
 
@@ -5060,11 +5157,11 @@ BOOLEAN PhShellExecuteEx(
         else if (info.hProcess)
             NtClose(info.hProcess);
 
-        return TRUE;
+        return STATUS_SUCCESS;
     }
     else
     {
-        return FALSE;
+        return PhGetLastWin32ErrorAsNtStatus();
     }
 }
 
@@ -7342,6 +7439,7 @@ NTSTATUS PhGetFileData(
     _Out_ PULONG BufferLength
     )
 {
+    NTSTATUS status;
     PSTR data = NULL;
     ULONG allocatedLength;
     ULONG dataLength;
@@ -7353,7 +7451,7 @@ NTSTATUS PhGetFileData(
     data = PhAllocate(allocatedLength);
     dataLength = 0;
 
-    while (NT_SUCCESS(NtReadFile(
+    while (NT_SUCCESS(status = NtReadFile(
         FileHandle,
         NULL,
         NULL,
@@ -7381,30 +7479,32 @@ NTSTATUS PhGetFileData(
         dataLength += returnLength;
     }
 
+    if (status == STATUS_END_OF_FILE)
+    {
+        status = STATUS_SUCCESS;
+    }
+    else if (!NT_SUCCESS(status))
+    {
+        PhFree(data);
+
+        *Buffer = NULL;
+        *BufferLength = 0;
+
+        return status;
+    }
+
     if (allocatedLength < dataLength + sizeof(ANSI_NULL))
     {
         allocatedLength++;
         data = PhReAllocate(data, allocatedLength);
     }
 
-    if (dataLength > 0)
-    {
-        data[dataLength] = ANSI_NULL;
+    data[dataLength] = ANSI_NULL;
 
-        *Buffer = data;
-        *BufferLength = dataLength;
+    *Buffer = data;
+    *BufferLength = dataLength;
 
-        return STATUS_SUCCESS;
-    }
-    else
-    {
-        *Buffer = NULL;
-        *BufferLength = 0;
-
-        PhFree(data);
-
-        return STATUS_UNSUCCESSFUL;
-    }
+    return status;
 }
 
 PVOID PhGetFileText(
@@ -7418,10 +7518,13 @@ PVOID PhGetFileText(
 
     if (NT_SUCCESS(PhGetFileData(FileHandle, &data, &dataLength)))
     {
-        if (Unicode)
-            string = PhConvertUtf8ToUtf16Ex(data, dataLength);
-        else
-            string = PhCreateBytesEx(data, dataLength);
+        if (dataLength)
+        {
+            if (Unicode)
+                string = PhConvertUtf8ToUtf16Ex(data, dataLength);
+            else
+                string = PhCreateBytesEx(data, dataLength);
+        }
 
         PhFree(data);
     }

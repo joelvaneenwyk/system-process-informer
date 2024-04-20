@@ -55,8 +55,10 @@ HRESULT CALLBACK FinalTaskDialogCallbackProc(
             }
             else if (buttonId == IDYES)
             {
-                if (!UpdateShellExecute(context, hwndDlg))
+                if (!NT_SUCCESS(UpdateShellExecute(context, hwndDlg)))
+                {
                     return S_FALSE;
+                }
             }
         }
         break;
@@ -229,6 +231,11 @@ VOID ShowUpdateFailedDialog(
             PPH_STRING errorMessage;
 
             if (errorMessage = PhHttpSocketGetErrorMessage(Context->ErrorCode))
+            {
+                config.pszContent = PhaFormatString(L"[%lu] %s", Context->ErrorCode, errorMessage->Buffer)->Buffer;
+                PhDereferenceObject(errorMessage);
+            }
+            else if (errorMessage = PhGetStatusMessage(0, Context->ErrorCode))
             {
                 config.pszContent = PhaFormatString(L"[%lu] %s", Context->ErrorCode, errorMessage->Buffer)->Buffer;
                 PhDereferenceObject(errorMessage);

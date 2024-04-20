@@ -280,16 +280,6 @@ VOID NTAPI LoadCallback(
     _In_opt_ PVOID Context
     )
 {
-    PPH_PLUGIN toolStatusPlugin;
-
-    if (toolStatusPlugin = PhFindPlugin(TOOLSTATUS_PLUGIN_NAME))
-    {
-        ToolStatusInterface = PhGetPluginInformation(toolStatusPlugin)->Interface;
-
-        if (ToolStatusInterface->Version < TOOLSTATUS_INTERFACE_VERSION)
-            ToolStatusInterface = NULL;
-    }
-
     InitializeDbPath();
     InitializeDb();
     LoadDb();
@@ -1965,7 +1955,7 @@ VOID MainWindowShowingCallback(
     _In_opt_ PVOID Context
     )
 {
-    if (ToolStatusInterface)
+    if (ToolStatusInterface = PhGetPluginInterfaceZ(TOOLSTATUS_PLUGIN_NAME, TOOLSTATUS_INTERFACE_VERSION))
     {
         PhRegisterCallback(ToolStatusInterface->SearchChangedEvent, SearchChangedHandler, NULL, &SearchChangedRegistration);
     }
@@ -2523,9 +2513,9 @@ VOID SearchChangedHandler(
     _In_opt_ PVOID Context
     )
 {
-    PPH_STRING searchText = Parameter;
+    ULONG_PTR matchHandle = (ULONG_PTR)Parameter;
 
-    if (PhIsNullOrEmptyString(searchText))
+    if (!matchHandle)
     {
         // ToolStatus expanded all nodes for searching, but the search text just became empty. We
         // should re-collapse processes.

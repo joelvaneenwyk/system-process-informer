@@ -5,7 +5,7 @@
  *
  * Authors:
  *
- *     dmex    2011-2023
+ *     dmex    2011-2024
  *
  */
 
@@ -73,25 +73,26 @@ PPH_UPDATER_CONTEXT CreateUpdateContext(
     return context;
 }
 
-BOOLEAN UpdateShellExecute(
+NTSTATUS UpdateShellExecute(
     _In_ PPH_UPDATER_CONTEXT Context,
     _In_opt_ HWND WindowHandle
     )
 {
+    NTSTATUS status;
     PPH_STRING parameters;
 
     // Reset the cache so we don't prompt again after the update.
     PhSetStringSetting(SETTING_NAME_UPDATE_DATA, L"");
 
     if (PhIsNullOrEmptyString(Context->SetupFilePath))
-        return FALSE;
+        return STATUS_FAIL_CHECK;
 
     parameters = PH_AUTO(PhCreateKsiSettingsBlob());
     parameters = PH_AUTO(PhConcatStrings(3, L"-update \"", PhGetStringOrEmpty(parameters), L"\""));
 
     ProcessHacker_PrepareForEarlyShutdown();
 
-    if (PhShellExecuteEx(
+    status = PhShellExecuteEx(
         WindowHandle,
         PhGetString(Context->SetupFilePath),
         PhGetString(parameters),
@@ -100,34 +101,30 @@ BOOLEAN UpdateShellExecute(
         Context->DirectoryElevationRequired ? PH_SHELL_EXECUTE_ADMIN : PH_SHELL_EXECUTE_DEFAULT,
         0,
         NULL
-        ))
+        );
+
+    if (NT_SUCCESS(status))
     {
         Context->Cleanup = FALSE;
 
         ProcessHacker_Destroy();
-
-        return TRUE;
     }
     else
     {
-        ULONG errorCode = GetLastError();
-
-        // Install failed, cancel the shutdown.
         ProcessHacker_CancelEarlyShutdown();
 
-        // Show error dialog.
-        if (errorCode != ERROR_CANCELLED) // Ignore UAC decline.
+        if (status != STATUS_CANCELLED) // Ignore UAC decline.
         {
-            PhShowStatus(WindowHandle, L"Unable to execute the setup.", 0, errorCode);
+            PhShowStatus(WindowHandle, L"Unable to execute the setup.", status, 0);
 
             if (Context->StartupCheck)
                 ShowAvailableDialog(Context);
             else
                 ShowCheckForUpdatesDialog(Context);
         }
-
-        return FALSE;
     }
+
+    return status;
 }
 
 BOOLEAN UpdateCheckDirectoryElevationRequired(
@@ -280,16 +277,7 @@ PPH_STRING UpdateVersionString(
     }
     else
     {
-        PPH_STRING currentVersion = NULL;
-        PPH_STRING stringFormat;
-
-        if (stringFormat = PhFormatString(L"%lu.%lu.%lu.%lu", majorVersion, minorVersion, buildVersion, revisionVersion))
-        {
-            currentVersion = PhConcatStringRef2(&versionHeader, &stringFormat->sr);
-            PhDereferenceObject(currentVersion);
-        }
-
-        return currentVersion;
+        return PhFormat(format, RTL_NUMBER_OF(format), 0);
     }
 }
 
@@ -374,17 +362,13 @@ BOOLEAN QueryUpdateData(
     PPH_HTTP_CONTEXT httpContext = NULL;
     PPH_BYTES jsonString = NULL;
     PVOID jsonObject;
+    PWSTR urlPath;
 
     if (!PhHttpSocketCreate(&httpContext, NULL))
     {
         Context->ErrorCode = GetLastError();
         goto CleanupExit;
     }
-
-    //
-    // TODO configurable nightly/release option.
-    //
-    Context->Type = UpdaterTypeNightly;
 
     if (!PhHttpSocketConnect(
         httpContext,
@@ -396,10 +380,31 @@ BOOLEAN QueryUpdateData(
         goto CleanupExit;
     }
 
+    Context->Channel = PhGetIntegerSetting(L"ReleaseChannel");
+
+    switch (Context->Channel)
+    {
+    case PhReleaseChannel:
+        urlPath = L"/update.php?channel=release";
+        break;
+    //case PhPreviewChannel:
+    //    urlPath = L"/update.php?channel=preview";
+    //    break;
+    case PhCanaryChannel:
+        urlPath = L"/update.php?channel=canary";
+        break;
+    //case PhDeveloperChannel:
+    //    urlPath = L"/update.php?channel=developer";
+    //    break;
+    default:
+        Context->ErrorCode = ERROR_UNKNOWN_PATCH;
+        goto CleanupExit;
+    }
+
     if (!PhHttpSocketBeginRequest(
         httpContext,
         NULL,
-        L"/nightly.php?update",
+        urlPath,
         PH_HTTP_FLAG_REFRESH | PH_HTTP_FLAG_SECURE
         ))
     {
@@ -650,7 +655,6 @@ NTSTATUS UpdateDownloadThread(
     PPH_STRING downloadHostPath = NULL;
     PPH_STRING downloadUrlPath = NULL;
     PUPDATER_HASH_CONTEXT hashContext = NULL;
-    PUPDATER_HASH_CONTEXT hashContextLegacy = NULL;
     ULONG contentLength = 0;
     USHORT httpPort = 0;
     LARGE_INTEGER timeNow;
@@ -777,12 +781,8 @@ NTSTATUS UpdateDownloadThread(
         }
     }
 
-    assert((context->Type == UpdaterTypeNightly) || (context->Type == UpdaterTypeRelease));
-
     // Initialize hash algorithm.
-    if (!(hashContext = UpdaterInitializeHash(context->Type)))
-        goto CleanupExit;
-    if (!(hashContextLegacy = UpdaterInitializeHash(context->Type + 1)))
+    if (!(hashContext = UpdaterInitializeHash(context->Channel)))
         goto CleanupExit;
 
     // Start the clock.
@@ -807,7 +807,6 @@ NTSTATUS UpdateDownloadThread(
 
         // Update the hash of bytes we downloaded.
         UpdaterUpdateHash(hashContext, httpBuffer, bytesDownloaded);
-        UpdaterUpdateHash(hashContextLegacy, httpBuffer, bytesDownloaded);
 
         // Write the downloaded bytes to disk.
         if (!NT_SUCCESS(NtWriteFile(
@@ -882,21 +881,6 @@ NTSTATUS UpdateDownloadThread(
         }
     }
 
-    if (!signatureSuccess)
-    {
-        hashSuccess = FALSE;
-
-        if (UpdaterVerifyHash(hashContextLegacy, context->SetupFileHash))
-        {
-            hashSuccess = TRUE;
-
-            if (UpdaterVerifySignature(hashContextLegacy, context->SetupFileSignature))
-            {
-                signatureSuccess = TRUE;
-            }
-        }
-    }
-
     if (hashSuccess && signatureSuccess)
     {
         downloadSuccess = TRUE;
@@ -905,8 +889,6 @@ NTSTATUS UpdateDownloadThread(
 CleanupExit:
     if (httpContext)
         PhHttpSocketDestroy(httpContext);
-    if (hashContextLegacy)
-        UpdaterDestroyHash(hashContextLegacy);
     if (hashContext)
         UpdaterDestroyHash(hashContext);
     if (tempFileHandle)
@@ -1211,10 +1193,7 @@ VOID ShowStartupUpdateDialog(
 
     context = CreateUpdateContext(TRUE);
 
-    //
-    // TODO configurable nightly/release option.
-    //
-    context->Type = UpdaterTypeNightly;
+    context->Channel = PhGetIntegerSetting(L"ReleaseChannel");
 
     jsonString = PhGetStringSetting(SETTING_NAME_UPDATE_DATA);
 
@@ -1251,8 +1230,7 @@ VOID ShowStartupUpdateDialog(
         PhIsNullOrEmptyString(context->SetupFileSignature) &&
         PhIsNullOrEmptyString(context->CommitHash))
     {
-        PhDereferenceObject(context);
-        return;
+        goto CleanupExit;
     }
 
     TASKDIALOGCONFIG config = { sizeof(TASKDIALOGCONFIG) };
@@ -1263,6 +1241,7 @@ VOID ShowStartupUpdateDialog(
     config.pfCallback = TaskDialogBootstrapCallback;
     TaskDialogIndirect(&config, NULL, NULL, NULL);
 
+CleanupExit:
     PhDereferenceObject(context);
     PhDeleteAutoPool(&autoPool);
 }

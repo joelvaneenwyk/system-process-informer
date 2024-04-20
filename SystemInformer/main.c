@@ -606,19 +606,18 @@ BOOLEAN PhInitializeDirectoryPolicy(
 
 #pragma region Error Reporting
 #include <symprv.h>
-#include <minidumpapiset.h>
 #include <winsta.h>
 
-typedef enum _PH_DUMP_TYPE
+typedef enum _PH_TRIAGE_DUMP_TYPE
 {
-    PhDumpTypeMinidump,
-    PhDumpTypeNormaldump,
-    PhDumpTypeFulldump,
-} PH_DUMP_TYPE;
+    PhTriageDumpTypeMinimal,
+    PhTriageDumpTypeNormal,
+    PhTriageDumpTypeFull,
+} PH_TRIAGE_DUMP_TYPE;
 
 VOID PhpCreateUnhandledExceptionCrashDump(
     _In_ PEXCEPTION_POINTERS ExceptionInfo,
-    _In_ PH_DUMP_TYPE DumpType
+    _In_ PH_TRIAGE_DUMP_TYPE DumpType
     )
 {
     HANDLE fileHandle;
@@ -642,7 +641,7 @@ VOID PhpCreateUnhandledExceptionCrashDump(
         )))
     {
         MINIDUMP_EXCEPTION_INFORMATION exceptionInfo;
-        ULONG dumpType = PhDumpTypeNormaldump;
+        ULONG dumpType = PhTriageDumpTypeMinimal;
 
         exceptionInfo.ThreadId = HandleToUlong(NtCurrentThreadId());
         exceptionInfo.ExceptionPointers = ExceptionInfo;
@@ -650,10 +649,15 @@ VOID PhpCreateUnhandledExceptionCrashDump(
 
         switch (DumpType)
         {
-        case PhDumpTypeMinidump:
-            dumpType = MiniDumpWithDataSegs | MiniDumpWithUnloadedModules | MiniDumpWithProcessThreadData;
+        case PhTriageDumpTypeMinimal:
+            dumpType =
+                MiniDumpWithDataSegs |
+                MiniDumpWithUnloadedModules |
+                MiniDumpWithProcessThreadData |
+                MiniDumpWithThreadInfo |
+                MiniDumpIgnoreInaccessibleMemory;
             break;
-        case PhDumpTypeNormaldump:
+        case PhTriageDumpTypeNormal:
             dumpType =
                 MiniDumpWithDataSegs |
                 MiniDumpWithHandleData |
@@ -665,7 +669,7 @@ VOID PhpCreateUnhandledExceptionCrashDump(
                 MiniDumpIgnoreInaccessibleMemory |
                 MiniDumpWithTokenInformation;
             break;
-        case PhDumpTypeFulldump:
+        case PhTriageDumpTypeFull:
             dumpType =
                 MiniDumpWithDataSegs |
                 MiniDumpWithFullMemory |
@@ -718,9 +722,9 @@ ULONG CALLBACK PhpUnhandledExceptionCallback(
         TASKDIALOGCONFIG config = { sizeof(TASKDIALOGCONFIG) };
         TASKDIALOG_BUTTON buttons[6] =
         {
-            { 1, L"Fulldump\nA complete dump of the process, rarely needed most of the time." },
-            { 2, L"Normaldump\nFor most purposes, this dump file is the most useful." },
-            { 3, L"Minidump\nA very limited dump with limited data." },
+            { 1, L"Full\nA complete dump of the process, rarely needed most of the time." },
+            { 2, L"Normal\nFor most purposes, this dump file is the most useful." },
+            { 3, L"Minimal\nA very limited dump with limited data." },
             { 4, L"Restart\nRestart the application." }, // and hope it doesn't crash again.";
             { 5, L"Ignore" },  // \nTry ignore the exception and continue.";
             { 6, L"Exit" }, // \nTerminate the program.";
@@ -755,13 +759,13 @@ ULONG CALLBACK PhpUnhandledExceptionCallback(
             switch (result)
             {
             case 1:
-                PhpCreateUnhandledExceptionCrashDump(ExceptionInfo, PhDumpTypeFulldump);
+                PhpCreateUnhandledExceptionCrashDump(ExceptionInfo, PhTriageDumpTypeFull);
                 break;
             case 2:
-                PhpCreateUnhandledExceptionCrashDump(ExceptionInfo, PhDumpTypeNormaldump);
+                PhpCreateUnhandledExceptionCrashDump(ExceptionInfo, PhTriageDumpTypeNormal);
                 break;
             case 3:
-                PhpCreateUnhandledExceptionCrashDump(ExceptionInfo, PhDumpTypeMinidump);
+                PhpCreateUnhandledExceptionCrashDump(ExceptionInfo, PhTriageDumpTypeMinimal);
                 break;
             case 4:
                 {
@@ -841,7 +845,7 @@ ULONG CALLBACK PhpUnhandledExceptionCallback(
 #ifdef DEBUG
             if (response == IDOK)
             {
-                PhpCreateUnhandledExceptionCrashDump(ExceptionInfo, PhDumpTypeFulldump);
+                PhpCreateUnhandledExceptionCrashDump(ExceptionInfo, PhTriageDumpTypeFull);
             }
 #endif
         }
@@ -1187,6 +1191,23 @@ VOID PhpInitializeSettings(
         }
     }
 
+    if (!PhIsNullOrEmptyString(PhStartupParameters.Channel))
+    {
+        static PH_STRINGREF stableChannel = PH_STRINGREF_INIT(L"release");
+        static PH_STRINGREF previewChannel = PH_STRINGREF_INIT(L"preview");
+        static PH_STRINGREF canaryChannel = PH_STRINGREF_INIT(L"canary");
+        static PH_STRINGREF developerChannel = PH_STRINGREF_INIT(L"developer");
+
+        if (PhEqualStringRef(&PhStartupParameters.Channel->sr, &stableChannel, FALSE))
+            PhSetIntegerSetting(L"ReleaseChannel", PhReleaseChannel);
+        else if (PhEqualStringRef(&PhStartupParameters.Channel->sr, &previewChannel, FALSE))
+            PhSetIntegerSetting(L"ReleaseChannel", PhPreviewChannel);
+        else if (PhEqualStringRef(&PhStartupParameters.Channel->sr, &canaryChannel, FALSE))
+            PhSetIntegerSetting(L"ReleaseChannel", PhCanaryChannel);
+        else if (PhEqualStringRef(&PhStartupParameters.Channel->sr, &developerChannel, FALSE))
+            PhSetIntegerSetting(L"ReleaseChannel", PhDeveloperChannel);
+    }
+
     PhUpdateCachedSettings();
 
     // Apply basic global settings.
@@ -1239,7 +1260,8 @@ typedef enum _PH_COMMAND_ARG
     PH_ARG_SELECTTAB,
     PH_ARG_SYSINFO,
     PH_ARG_KPHSTARTUPHIGH,
-    PH_ARG_KPHSTARTUPMAX
+    PH_ARG_KPHSTARTUPMAX,
+    PH_ARG_CHANNEL,
 } PH_COMMAND_ARG;
 
 BOOLEAN NTAPI PhpCommandLineOptionCallback(
@@ -1347,6 +1369,9 @@ BOOLEAN NTAPI PhpCommandLineOptionCallback(
         case PH_ARG_KPHSTARTUPMAX:
             PhStartupParameters.KphStartupMax = TRUE;
             break;
+        case PH_ARG_CHANNEL:
+            PhSwapReference(&PhStartupParameters.Channel, Value);
+            break;
         }
     }
     else
@@ -1399,7 +1424,8 @@ VOID PhpProcessStartupParameters(
         { PH_ARG_SELECTTAB, L"selecttab", MandatoryArgumentType },
         { PH_ARG_SYSINFO, L"sysinfo", OptionalArgumentType },
         { PH_ARG_KPHSTARTUPHIGH, L"kh", NoArgumentType },
-        { PH_ARG_KPHSTARTUPMAX, L"kx", NoArgumentType }
+        { PH_ARG_KPHSTARTUPMAX, L"kx", NoArgumentType },
+        { PH_ARG_CHANNEL, L"channel", MandatoryArgumentType },
     };
     PH_STRINGREF commandLine;
 
@@ -1432,6 +1458,7 @@ VOID PhpProcessStartupParameters(
             L"-selectpid pid-to-select\n"
             L"-selecttab name-of-tab-to-select\n"
             L"-sysinfo [section-name]\n"
+            L"-channel [channel-name]\n"
             L"-v\n"
             );
 

@@ -6,7 +6,7 @@
  * Authors:
  *
  *     wj32    2010-2016
- *     dmex    2017-2022
+ *     dmex    2017-2024
  *
  */
 
@@ -33,6 +33,8 @@
 #include "../resource.h"
 #include <phfwddef.h>
 #include <appsup.h>
+
+#include <minidumpapiset.h>
 
 // main
 
@@ -72,6 +74,7 @@ typedef struct _PH_STARTUP_PARAMETERS
     PPH_LIST PluginParameters;
     PPH_STRING SelectTab;
     PPH_STRING SysInfo;
+    PPH_STRING Channel;
 } PH_STARTUP_PARAMETERS, *PPH_STARTUP_PARAMETERS;
 
 extern BOOLEAN PhPluginsEnabled;
@@ -148,10 +151,6 @@ VOID PhLoadPlugins(
 
 VOID PhUnloadPlugins(
     _In_ BOOLEAN SessionEnding
-    );
-
-struct _PH_PLUGIN *PhFindPlugin2(
-    _In_ PPH_STRINGREF Name
     );
 
 // log
@@ -292,6 +291,12 @@ VOID PhUiAnalyzeWaitThread(
 // mdump
 
 VOID PhUiCreateDumpFileProcess(
+    _In_ HWND WindowHandle,
+    _In_ PPH_PROCESS_ITEM ProcessItem,
+    _In_ MINIDUMP_TYPE DumpType
+    );
+
+VOID PhShowCreateDumpFileProcessDialog(
     _In_ HWND WindowHandle,
     _In_ PPH_PROCESS_ITEM ProcessItem
     );
@@ -500,6 +505,26 @@ HPROPSHEETPAGE PhCreateJobPage(
 
 // kdump
 
+typedef union _PH_LIVE_DUMP_OPTIONS
+{
+    BOOLEAN Flags;
+    struct
+    {
+        BOOLEAN CompressMemoryPages : 1;
+        BOOLEAN IncludeUserSpaceMemory : 1;
+        BOOLEAN IncludeHypervisorPages : 1;
+        BOOLEAN OnlyKernelThreadStacks : 1;
+        BOOLEAN UseDumpStorageStack : 1;
+        BOOLEAN IncludeNonEssentialHypervisorPages : 1;
+        BOOLEAN Spare : 2;
+    };
+} PH_LIVE_DUMP_OPTIONS, *PPH_LIVE_DUMP_OPTIONS;
+
+VOID PhUiCreateLiveDump(
+    _In_ HWND ParentWindowHandle,
+    _In_ PPH_LIVE_DUMP_OPTIONS Options
+    );
+
 VOID PhShowLiveDumpDialog(
     _In_ HWND ParentWindowHandle
     );
@@ -688,8 +713,8 @@ PhExecuteRunAsCommand2(
     _In_opt_ PWSTR Password,
     _In_opt_ ULONG LogonType,
     _In_opt_ HANDLE ProcessIdWithToken,
-    _In_ ULONG SessionId,
-    _In_ PWSTR DesktopName,
+    _In_opt_ ULONG SessionId,
+    _In_opt_ PWSTR DesktopName,
     _In_ BOOLEAN UseLinkedToken
     );
 // end_phapppub
@@ -704,8 +729,8 @@ PhExecuteRunAsCommand3(
     _In_opt_ PWSTR Password,
     _In_opt_ ULONG LogonType,
     _In_opt_ HANDLE ProcessIdWithToken,
-    _In_ ULONG SessionId,
-    _In_ PWSTR DesktopName,
+    _In_opt_ ULONG SessionId,
+    _In_opt_ PWSTR DesktopName,
     _In_ BOOLEAN UseLinkedToken,
     _In_ BOOLEAN CreateSuspendedProcess,
     _In_ BOOLEAN CreateUIAccessProcess
@@ -840,6 +865,12 @@ VOID PhShowThreadStackDialog(
     _In_ HANDLE ProcessId,
     _In_ HANDLE ThreadId,
     _In_ PPH_THREAD_PROVIDER ThreadProvider
+    );
+
+// thrdstks
+
+VOID PhShowThreadStacksDialog(
+    VOID
     );
 
 // tokprp

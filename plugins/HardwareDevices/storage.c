@@ -5,12 +5,13 @@
  *
  * Authors:
  *
- *     dmex    2015-2023
+ *     dmex    2015-2024
  *
  */
 
 #include "devices.h"
 #include <ntdddisk.h>
+#define PHNT_DEVICE_MAP 1
 
 PPH_STRING DiskDriveQueryDosMountPoints(
     _In_ ULONG DeviceNumber
@@ -27,7 +28,7 @@ PPH_STRING DiskDriveQueryDosMountPoints(
     PhGetProcessDeviceMap(NtCurrentProcess(), &deviceMap);
 #endif
 
-    for (INT i = 0; i < 0x1A; i++)
+    for (ULONG i = 0; i < 0x1A; i++)
     {
         HANDLE deviceHandle;
 
@@ -108,7 +109,7 @@ PPH_LIST DiskDriveQueryMountPointHandles(
 
     deviceList = PhCreateList(2);
 
-    for (INT i = 0; i < 26; i++)
+    for (ULONG i = 0; i < 26; i++)
     {
         NTSTATUS status;
         HANDLE deviceHandle = NULL;
@@ -1629,3 +1630,29 @@ NTSTATUS DiskDriveQueryPartitionInfo(
 //
 //    return TRUE;
 //}
+
+
+NTSTATUS DiskDriveEnableStatistics(
+    VOID
+    )
+{
+    static PH_STRINGREF keyName = PH_STRINGREF_INIT(L"System\\CurrentControlSet\\Services\\Partmgr");
+    NTSTATUS status;
+    HANDLE keyHandle;
+
+    status = PhOpenKey(
+        &keyHandle,
+        KEY_READ,
+        PH_KEY_LOCAL_MACHINE,
+        &keyName,
+        0
+        );
+
+    if (NT_SUCCESS(status))
+    {
+        PhSetValueKeyZ(keyHandle, L"EnableCounterForIoctl", REG_DWORD, &(ULONG){ TRUE }, sizeof(ULONG));
+        NtClose(keyHandle);
+    }
+
+    return status;
+}

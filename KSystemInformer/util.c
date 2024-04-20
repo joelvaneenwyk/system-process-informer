@@ -6,14 +6,22 @@
  * Authors:
  *
  *     wj32    2016
- *     jxy-s   2022
+ *     jxy-s   2022-2023
  *
  */
 
 #include <kph.h>
-#include <dyndata.h>
 
 #include <trace.h>
+
+KPH_PROTECTED_DATA_SECTION_RO_PUSH();
+static const UNICODE_STRING KphpLsaPortName = RTL_CONSTANT_STRING(L"\\SeLsaCommandPort");
+static const ANSI_STRING KphpUrlSchemeSeparator = RTL_CONSTANT_STRING("://");
+static const ANSI_STRING KphpUrlPathSeparator = RTL_CONSTANT_STRING("/");
+static const ANSI_STRING KphpUrlParametersSeparator = RTL_CONSTANT_STRING("?");
+static const ANSI_STRING KphpUrlAnchorSeparator = RTL_CONSTANT_STRING("#");
+static const ANSI_STRING KphpUrlPortSeparator = RTL_CONSTANT_STRING(":");
+KPH_PROTECTED_DATA_SECTION_RO_POP();
 
 /**
  * \brief Compares two blocks of memory.
@@ -216,10 +224,247 @@ VOID KphReleaseRundown(
     ExReleaseRundownProtection(Rundown);
 }
 
+/**
+ * \brief Retrieves the process sequence number for a given process.
+ *
+ * \param[in] Process The process to get the sequence number of.
+ *
+ * \return The sequence number key.
+ */
+_IRQL_requires_max_(DISPATCH_LEVEL)
+ULONG64 KphGetProcessSequenceNumber(
+    _In_ PEPROCESS Process
+    )
+{
+    ULONG64 sequence;
+    PKPH_PROCESS_CONTEXT process;
 
-PAGED_FILE();
+    NPAGED_CODE_DISPATCH_MAX();
 
-static UNICODE_STRING KphpLsaPortName = RTL_CONSTANT_STRING(L"\\SeLsaCommandPort");
+    if (KphDynPsGetProcessSequenceNumber)
+    {
+        return KphDynPsGetProcessSequenceNumber(Process);
+    }
+
+    process = KphGetEProcessContext(Process);
+    if (!process)
+    {
+        KphTracePrint(TRACE_LEVEL_VERBOSE,
+                      GENERAL,
+                      "Failed to get process sequence number for PID %lu",
+                      HandleToULong(PsGetProcessId(Process)));
+
+        return 0;
+    }
+
+    sequence = process->SequenceNumber;
+
+    KphDereferenceObject(process);
+
+    return sequence;
+}
+
+/**
+ * \brief Retrieves the process start key for a given process.
+ *
+ * \param[in] Process The process to get the start key of.
+ *
+ * \return The process start key.
+ */
+_IRQL_requires_max_(DISPATCH_LEVEL)
+ULONG64 KphGetProcessStartKey(
+    _In_ PEPROCESS Process
+    )
+{
+    ULONG64 key;
+    PKPH_PROCESS_CONTEXT process;
+
+    NPAGED_CODE_DISPATCH_MAX();
+
+    if (KphDynPsGetProcessStartKey)
+    {
+        return KphDynPsGetProcessStartKey(Process);
+    }
+
+    process = KphGetEProcessContext(Process);
+    if (!process)
+    {
+        KphTracePrint(TRACE_LEVEL_VERBOSE,
+                      GENERAL,
+                      "Failed to get process start key for PID %lu",
+                      HandleToULong(PsGetProcessId(Process)));
+
+        return 0;
+    }
+
+    key = (process->SequenceNumber | ((ULONG64)SharedUserData->BootId << 48));
+
+    KphDereferenceObject(process);
+
+    return key;
+}
+
+/**
+ * \brief Retrieves the current thread's sub-process tag.
+ *
+ * \return The current thread's sub-process tag.
+ */
+_IRQL_requires_max_(DISPATCH_LEVEL)
+PVOID KphGetCurrentThreadSubProcessTag(
+    VOID
+    )
+{
+    PKPH_THREAD_CONTEXT thread;
+    PVOID subProcessTag;
+    PTEB teb;
+
+    NPAGED_CODE_DISPATCH_MAX();
+
+    if (PsIsSystemThread(PsGetCurrentThread()))
+    {
+        return NULL;
+    }
+
+    //
+    // We support lookups at dispatch. To achieve this we cache the last lookup
+    // in the thread context. If we're at dispatch use the cache. Otherwise go
+    // do the lookup and cache the result in the thread context.
+    //
+
+    if (KeGetCurrentIrql() > APC_LEVEL)
+    {
+        subProcessTag = NULL;
+
+        thread = KphGetCurrentThreadContext();
+        if (thread)
+        {
+            subProcessTag = thread->SubProcessTag;
+
+            KphDereferenceObject(thread);
+        }
+
+        return subProcessTag;
+    }
+
+    teb = PsGetCurrentThreadTeb();
+    if (!teb)
+    {
+        return NULL;
+    }
+
+    __try
+    {
+        subProcessTag = teb->SubProcessTag;
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+        return NULL;
+    }
+
+    thread = KphGetCurrentThreadContext();
+    if (thread)
+    {
+        thread->SubProcessTag = subProcessTag;
+
+        KphDereferenceObject(thread);
+    }
+
+    return subProcessTag;
+}
+
+/**
+ * \brief Retrieves a thread's sub-process tag.
+ *
+ * \param[in] Thread The thread to get the sub-process tag of.
+ * \param[in] CacheOnly If TRUE, only the cached value is returned. This is
+ * useful when the caller knows that touching the TEB is not safe.
+ *
+ * \return The thread's sub-process tag.
+ */
+_IRQL_requires_max_(DISPATCH_LEVEL)
+PVOID KphGetThreadSubProcessTagEx(
+    _In_ PETHREAD Thread,
+    _In_ BOOLEAN CacheOnly
+    )
+{
+    PKPH_THREAD_CONTEXT thread;
+    PVOID subProcessTag;
+    PTEB teb;
+
+    NPAGED_CODE_DISPATCH_MAX();
+
+    if (PsIsSystemThread(Thread))
+    {
+        return NULL;
+    }
+
+    //
+    // We support lookups at dispatch and across process boundaries. To achieve
+    // this we cache the last lookup in the thread context. If we're at dispatch
+    // or across process boundaries use the cache. Otherwise go do the lookup
+    // and cache the result in the thread context. We choose not to attach to
+    // a process to retrieve the information to avoid performance penalties.
+    //
+
+    if (CacheOnly ||
+        (KeGetCurrentIrql() > APC_LEVEL) ||
+        (PsGetThreadProcess(Thread) != PsGetCurrentProcess()))
+    {
+        subProcessTag = NULL;
+
+        thread = KphGetEThreadContext(Thread);
+        if (thread)
+        {
+            subProcessTag = thread->SubProcessTag;
+
+            KphDereferenceObject(thread);
+        }
+
+        return subProcessTag;
+    }
+
+    teb = PsGetThreadTeb(Thread);
+    if (!teb)
+    {
+        return NULL;
+    }
+
+    __try
+    {
+        subProcessTag = teb->SubProcessTag;
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+        return NULL;
+    }
+
+    thread = KphGetEThreadContext(Thread);
+    if (thread)
+    {
+        thread->SubProcessTag = subProcessTag;
+
+        KphDereferenceObject(thread);
+    }
+
+    return subProcessTag;
+}
+
+/**
+ * \brief Retrieves a thread's sub-process tag.
+ *
+ * \param[in] Thread The thread to get the sub-process tag of.
+ *
+ * \return The thread's sub-process tag.
+ */
+_IRQL_requires_max_(DISPATCH_LEVEL)
+PVOID KphGetThreadSubProcessTag(
+    _In_ PETHREAD Thread
+    )
+{
+    NPAGED_CODE_DISPATCH_MAX();
+
+    return KphGetThreadSubProcessTagEx(Thread, FALSE);
+}
 
 /**
  * \brief Initializes rundown object.
@@ -231,7 +476,7 @@ VOID KphInitializeRundown(
     _Out_ PKPH_RUNDOWN Rundown
     )
 {
-    PAGED_CODE();
+    NPAGED_CODE_APC_MAX_FOR_PAGING_IO();
 
     ExInitializeRundownProtection(Rundown);
 }
@@ -247,7 +492,7 @@ VOID KphWaitForRundown(
     _Inout_ PKPH_RUNDOWN Rundown
     )
 {
-    PAGED_CODE();
+    NPAGED_CODE_APC_MAX_FOR_PAGING_IO();
 
     ExWaitForRundownProtectionRelease(Rundown);
 }
@@ -262,7 +507,7 @@ VOID KphInitializeRWLock(
     _Out_ PKPH_RWLOCK Lock
     )
 {
-    PAGED_CODE();
+    NPAGED_CODE_APC_MAX_FOR_PAGING_IO();
 
     FltInitializePushLock(Lock);
 }
@@ -277,7 +522,7 @@ VOID KphDeleteRWLock(
     _In_ PKPH_RWLOCK Lock
     )
 {
-    PAGED_CODE();
+    NPAGED_CODE_APC_MAX_FOR_PAGING_IO();
 
     FltDeletePushLock(Lock);
 }
@@ -293,7 +538,7 @@ VOID KphAcquireRWLockExclusive(
     _Inout_ _Requires_lock_not_held_(*_Curr_) _Acquires_lock_(*_Curr_) PKPH_RWLOCK Lock
     )
 {
-    PAGED_CODE();
+    NPAGED_CODE_APC_MAX_FOR_PAGING_IO();
 
     FltAcquirePushLockExclusive(Lock);
 }
@@ -309,7 +554,7 @@ VOID KphAcquireRWLockShared(
     _Inout_ _Requires_lock_not_held_(*_Curr_) _Acquires_lock_(*_Curr_) PKPH_RWLOCK Lock
     )
 {
-    PAGED_CODE();
+    NPAGED_CODE_APC_MAX_FOR_PAGING_IO();
 
     FltAcquirePushLockShared(Lock);
 }
@@ -325,10 +570,12 @@ VOID KphReleaseRWLock(
     _Inout_ _Requires_lock_held_(*_Curr_) _Releases_lock_(*_Curr_) PKPH_RWLOCK Lock
     )
 {
-    PAGED_CODE();
+    NPAGED_CODE_APC_MAX_FOR_PAGING_IO();
 
     FltReleasePushLock(Lock);
 }
+
+PAGED_FILE();
 
 /**
  * \brief Acquires a reference to a reference object.
@@ -470,7 +717,7 @@ NTSTATUS KphValidateAddressForSystemModules(
     {
         KeLeaveCriticalRegion();
 
-        KphTracePrint(TRACE_LEVEL_ERROR,
+        KphTracePrint(TRACE_LEVEL_VERBOSE,
                       UTIL,
                       "Failed to acquire PsLoadedModuleResource");
 
@@ -523,7 +770,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS KphQueryRegistryString(
     _In_ HANDLE KeyHandle,
-    _In_ PUNICODE_STRING ValueName,
+    _In_ PCUNICODE_STRING ValueName,
     _Outptr_allocatesMem_ PUNICODE_STRING* String
     )
 {
@@ -539,7 +786,7 @@ NTSTATUS KphQueryRegistryString(
     info = NULL;
 
     status = ZwQueryValueKey(KeyHandle,
-                             ValueName,
+                             (PUNICODE_STRING)ValueName,
                              KeyValuePartialInformation,
                              NULL,
                              0,
@@ -563,7 +810,7 @@ NTSTATUS KphQueryRegistryString(
     }
 
     status = ZwQueryValueKey(KeyHandle,
-                             ValueName,
+                             (PUNICODE_STRING)ValueName,
                              KeyValuePartialInformation,
                              info,
                              resultLength,
@@ -663,7 +910,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS KphQueryRegistryBinary(
     _In_ HANDLE KeyHandle,
-    _In_ PUNICODE_STRING ValueName,
+    _In_ PCUNICODE_STRING ValueName,
     _Outptr_allocatesMem_ PBYTE* Buffer,
     _Out_ PULONG Length
     )
@@ -680,7 +927,7 @@ NTSTATUS KphQueryRegistryBinary(
     buffer = NULL;
 
     status = ZwQueryValueKey(KeyHandle,
-                             ValueName,
+                             (PUNICODE_STRING)ValueName,
                              KeyValuePartialInformation,
                              NULL,
                              0,
@@ -704,7 +951,7 @@ NTSTATUS KphQueryRegistryBinary(
     }
 
     status = ZwQueryValueKey(KeyHandle,
-                             ValueName,
+                             (PUNICODE_STRING)ValueName,
                              KeyValuePartialInformation,
                              buffer,
                              resultLength,
@@ -766,7 +1013,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS KphQueryRegistryULong(
     _In_ HANDLE KeyHandle,
-    _In_ PUNICODE_STRING ValueName,
+    _In_ PCUNICODE_STRING ValueName,
     _Out_ PULONG Value
     )
 {
@@ -780,7 +1027,7 @@ NTSTATUS KphQueryRegistryULong(
     *Value = 0;
 
     status = ZwQueryValueKey(KeyHandle,
-                             ValueName,
+                             (PUNICODE_STRING)ValueName,
                              KeyValuePartialInformation,
                              buffer,
                              ARRAYSIZE(buffer),
@@ -991,7 +1238,7 @@ NTSTATUS KphGetNameFileObject(
     nameInfo = KphAllocatePaged(returnLength, KPH_TAG_FILE_OBJECT_NAME);
     if (!nameInfo)
     {
-        KphTracePrint(TRACE_LEVEL_ERROR,
+        KphTracePrint(TRACE_LEVEL_VERBOSE,
                       UTIL,
                       "Failed to allocate for file object name.");
 
@@ -1009,7 +1256,7 @@ NTSTATUS KphGetNameFileObject(
         nameInfo = KphAllocatePaged(returnLength, KPH_TAG_FILE_OBJECT_NAME);
         if (!nameInfo)
         {
-            KphTracePrint(TRACE_LEVEL_ERROR,
+            KphTracePrint(TRACE_LEVEL_VERBOSE,
                           UTIL,
                           "Failed to allocate for file object name.");
 
@@ -1025,7 +1272,7 @@ NTSTATUS KphGetNameFileObject(
 
     if (!NT_SUCCESS(status))
     {
-        KphTracePrint(TRACE_LEVEL_ERROR,
+        KphTracePrint(TRACE_LEVEL_VERBOSE,
                       UTIL,
                       "KphQueryNameFileObject failed: %!STATUS!",
                       status);
@@ -1064,7 +1311,7 @@ VOID KphFreeNameFileObject(
 }
 
 /**
- * \brief Preforms a single privilege check on the supplied subject context.
+ * \brief Perform a single privilege check on the supplied subject context.
  *
  * \param[in] PrivilegeValue The privilege value to check.
  * \param[in] SubjectSecurityContext The subject context to check.
@@ -1094,7 +1341,7 @@ BOOLEAN KphSinglePrivilegeCheckEx(
 }
 
 /**
- * \brief Preforms a single privilege check on the current subject context.
+ * \brief Perform a single privilege check on the current subject context.
  *
  * \param[in] PrivilegeValue The privilege value to check.
  * \param[in] AccessMode The access mode used for the access check.
@@ -1136,6 +1383,7 @@ NTSTATUS KphpGetLsassProcessId(
     )
 {
     NTSTATUS status;
+    PKPH_DYN dyn;
     HANDLE portHandle;
     KAPC_STATE apcState;
     KPH_ALPC_COMMUNICATION_INFORMATION info;
@@ -1143,6 +1391,18 @@ NTSTATUS KphpGetLsassProcessId(
     PAGED_CODE_PASSIVE();
 
     *ProcessId = NULL;
+
+    //
+    // N.B. This is an optimization. In order to query the process ID of lsass
+    // through the LSA port, we need the dynamic data. Rather than doing the
+    // work to attach to the system process and open the port, if we know we
+    // do not have the dynamic data, exit early.
+    //
+    dyn = KphReferenceDynData();
+    if (!dyn)
+    {
+        return STATUS_NOINTERFACE;
+    }
 
     //
     // Attach to system to ensure we get a kernel handle from the following
@@ -1155,7 +1415,7 @@ NTSTATUS KphpGetLsassProcessId(
     KeStackAttachProcess(PsInitialSystemProcess, &apcState);
 
     status = ZwAlpcConnectPort(&portHandle,
-                               &KphpLsaPortName,
+                               (PUNICODE_STRING)&KphpLsaPortName,
                                NULL,
                                NULL,
                                0,
@@ -1167,7 +1427,7 @@ NTSTATUS KphpGetLsassProcessId(
                                NULL);
     if (!NT_SUCCESS(status))
     {
-        KphTracePrint(TRACE_LEVEL_ERROR,
+        KphTracePrint(TRACE_LEVEL_VERBOSE,
                       UTIL,
                       "ZwAlpcConnectPort failed: %!STATUS!",
                       status);
@@ -1185,9 +1445,9 @@ NTSTATUS KphpGetLsassProcessId(
                                      KernelMode);
     if (!NT_SUCCESS(status))
     {
-        KphTracePrint(TRACE_LEVEL_ERROR,
+        KphTracePrint(TRACE_LEVEL_VERBOSE,
                       UTIL,
-                      "ZwAlpcQueryInformation failed: %!STATUS!",
+                      "KphAlpcQueryInformation failed: %!STATUS!",
                       status);
         goto Exit;
     }
@@ -1203,6 +1463,8 @@ Exit:
 
     KeUnstackDetachProcess(&apcState);
 
+    KphDereferenceObject(dyn);
+
     return status;
 }
 
@@ -1210,41 +1472,45 @@ Exit:
  * \brief Checks if a given process is lsass.
  *
  * \param[in] Process The process to check.
+ * \param[out] IsLsass TRUE if the process is lsass, FALSE otherwise.
  *
- * \return TRUE if the process is lsass.
+ * \return Successful or errant status.
  */
 _IRQL_requires_max_(PASSIVE_LEVEL)
-BOOLEAN KphProcessIsLsass(
-    _In_ PEPROCESS Process
+_Must_inspect_result_
+NTSTATUS KphProcessIsLsass(
+    _In_ PEPROCESS Process,
+    _Out_ PBOOLEAN IsLsass
     )
 {
     NTSTATUS status;
     HANDLE processId;
     SECURITY_SUBJECT_CONTEXT subjectContext;
-    BOOLEAN result;
 
     PAGED_CODE_PASSIVE();
+
+    *IsLsass = FALSE;
 
     status = KphpGetLsassProcessId(&processId);
     if (!NT_SUCCESS(status))
     {
-        return FALSE;
+        return status;
     }
 
     if (processId != PsGetProcessId(Process))
     {
-        return FALSE;
+        return STATUS_SUCCESS;
     }
 
     SeCaptureSubjectContextEx(NULL, Process, &subjectContext);
 
-    result = KphSinglePrivilegeCheckEx(SeCreateTokenPrivilege,
-                                       &subjectContext,
-                                       UserMode);
+    *IsLsass = KphSinglePrivilegeCheckEx(SeCreateTokenPrivilege,
+                                         &subjectContext,
+                                         UserMode);
 
     SeReleaseSubjectContext(&subjectContext);
 
-    return result;
+    return STATUS_SUCCESS;
 }
 
 /**
@@ -1279,7 +1545,7 @@ NTSTATUS KphpGetKernelFileName(
                                       NULL);
     if (!NT_SUCCESS(status))
     {
-        KphTracePrint(TRACE_LEVEL_ERROR,
+        KphTracePrint(TRACE_LEVEL_VERBOSE,
                       UTIL,
                       L"ZwQuerySystemInformation failed: %!STATUS!",
                       status);
@@ -1318,7 +1584,7 @@ NTSTATUS KphGetKernelVersion(
     status = KphpGetKernelFileName(&kernelFileName);
     if (!NT_SUCCESS(status))
     {
-        KphTracePrint(TRACE_LEVEL_ERROR,
+        KphTracePrint(TRACE_LEVEL_VERBOSE,
                       UTIL,
                       "KphGetKernelFileName failed: %!STATUS!",
                       status);
@@ -1352,7 +1618,7 @@ Exit:
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS KphGetFileVersion(
-    _In_ PUNICODE_STRING FileName,
+    _In_ PCUNICODE_STRING FileName,
     _Out_ PKPH_FILE_VERSION Version
     )
 {
@@ -1379,7 +1645,7 @@ NTSTATUS KphGetFileVersion(
     fileHandle = NULL;
 
     InitializeObjectAttributes(&objectAttributes,
-                               FileName,
+                               (PUNICODE_STRING)FileName,
                                OBJ_KERNEL_HANDLE,
                                NULL,
                                NULL);
@@ -1399,7 +1665,7 @@ NTSTATUS KphGetFileVersion(
                            KernelMode);
     if (!NT_SUCCESS(status))
     {
-        KphTracePrint(TRACE_LEVEL_ERROR,
+        KphTracePrint(TRACE_LEVEL_VERBOSE,
                       UTIL,
                       "KphCreateFile failed: %!STATUS!",
                       status);
@@ -1415,7 +1681,7 @@ NTSTATUS KphGetFileVersion(
                                 &imageSize);
     if (!NT_SUCCESS(status))
     {
-        KphTracePrint(TRACE_LEVEL_ERROR,
+        KphTracePrint(TRACE_LEVEL_VERBOSE,
                       UTIL,
                       "KphMapViewInSystem failed: %!STATUS!",
                       status);
@@ -1438,7 +1704,7 @@ NTSTATUS KphGetFileVersion(
                                    &resourceData);
         if (!NT_SUCCESS(status))
         {
-            KphTracePrint(TRACE_LEVEL_ERROR,
+            KphTracePrint(TRACE_LEVEL_VERBOSE,
                           UTIL,
                           "LdrFindResource_U failed: %!STATUS!",
                           status);
@@ -1452,7 +1718,7 @@ NTSTATUS KphGetFileVersion(
                                    &resourceLength);
         if (!NT_SUCCESS(status))
         {
-            KphTracePrint(TRACE_LEVEL_ERROR,
+            KphTracePrint(TRACE_LEVEL_VERBOSE,
                           UTIL,
                           "LdrAccessResource failed: %!STATUS!",
                           status);
@@ -1462,7 +1728,7 @@ NTSTATUS KphGetFileVersion(
 
         if (Add2Ptr(resourceBuffer, resourceLength) >= imageEnd)
         {
-            KphTracePrint(TRACE_LEVEL_ERROR,
+            KphTracePrint(TRACE_LEVEL_VERBOSE,
                           UTIL,
                           "Resource buffer overflows mapping");
 
@@ -1472,7 +1738,7 @@ NTSTATUS KphGetFileVersion(
 
         if (resourceLength < sizeof(VS_VERSION_INFO_STRUCT))
         {
-            KphTracePrint(TRACE_LEVEL_ERROR,
+            KphTracePrint(TRACE_LEVEL_VERBOSE,
                           UTIL,
                           "Resource length insufficient");
 
@@ -1484,7 +1750,7 @@ NTSTATUS KphGetFileVersion(
 
         if (Add2Ptr(resourceBuffer, versionInfo->Length) >= imageEnd)
         {
-            KphTracePrint(TRACE_LEVEL_ERROR,
+            KphTracePrint(TRACE_LEVEL_VERBOSE,
                           UTIL,
                           "Version info overflows mapping");
 
@@ -1494,7 +1760,7 @@ NTSTATUS KphGetFileVersion(
 
         if (versionInfo->ValueLength < sizeof(VS_FIXEDFILEINFO))
         {
-            KphTracePrint(TRACE_LEVEL_ERROR,
+            KphTracePrint(TRACE_LEVEL_VERBOSE,
                           UTIL,
                           "Value length insufficient");
 
@@ -1505,7 +1771,7 @@ NTSTATUS KphGetFileVersion(
         status = RtlInitUnicodeStringEx(&keyName, versionInfo->Key);
         if (!NT_SUCCESS(status))
         {
-            KphTracePrint(TRACE_LEVEL_ERROR,
+            KphTracePrint(TRACE_LEVEL_VERBOSE,
                           UTIL,
                           "RtlInitUnicodeStringEx failed: %!STATUS!",
                           status);
@@ -1518,7 +1784,7 @@ NTSTATUS KphGetFileVersion(
 
         if (Add2Ptr(fileInfo, sizeof(VS_FIXEDFILEINFO)) >= imageEnd)
         {
-            KphTracePrint(TRACE_LEVEL_ERROR,
+            KphTracePrint(TRACE_LEVEL_VERBOSE,
                           UTIL,
                           "File version info overflows mapping");
 
@@ -1528,7 +1794,7 @@ NTSTATUS KphGetFileVersion(
 
         if (fileInfo->dwSignature != VS_FFI_SIGNATURE)
         {
-            KphTracePrint(TRACE_LEVEL_ERROR,
+            KphTracePrint(TRACE_LEVEL_VERBOSE,
                           UTIL,
                           "Invalid file version information signature (0x%08x)",
                           fileInfo->dwSignature);
@@ -1539,7 +1805,7 @@ NTSTATUS KphGetFileVersion(
 
         if (fileInfo->dwStrucVersion != 0x10000)
         {
-            KphTracePrint(TRACE_LEVEL_ERROR,
+            KphTracePrint(TRACE_LEVEL_VERBOSE,
                           UTIL,
                           "Unknown file version information structure (0x%08x)",
                           fileInfo->dwStrucVersion);
@@ -1688,7 +1954,7 @@ NTSTATUS KphDisableXfgOnTarget(
 _IRQL_requires_max_(APC_LEVEL)
 _Must_inspect_result_
 NTSTATUS KphGetFileNameFinalComponent(
-    _In_ PUNICODE_STRING FileName,
+    _In_ PCUNICODE_STRING FileName,
     _Out_ PUNICODE_STRING FinalComponent
     )
 {
@@ -1784,7 +2050,7 @@ VOID KphFreeProcessImageName(
 _IRQL_requires_max_(PASSIVE_LEVEL)
 _Must_inspect_result_
 NTSTATUS KphOpenParametersKey(
-    _In_ PUNICODE_STRING RegistryPath,
+    _In_ PCUNICODE_STRING RegistryPath,
     _Out_ PHANDLE KeyHandle
     )
 {
@@ -1822,7 +2088,7 @@ NTSTATUS KphOpenParametersKey(
     status = ZwOpenKey(KeyHandle, KEY_READ, &objectAttributes);
     if (!NT_SUCCESS(status))
     {
-        KphTracePrint(TRACE_LEVEL_ERROR,
+        KphTracePrint(TRACE_LEVEL_VERBOSE,
                       GENERAL,
                       "Unable to open Parameters key: %!STATUS!",
                       status);
@@ -1833,12 +2099,6 @@ NTSTATUS KphOpenParametersKey(
 
     return STATUS_SUCCESS;
 }
-
-static ANSI_STRING KphpUrlSchemeSeparator = RTL_CONSTANT_STRING("://");
-static ANSI_STRING KphpUrlPathSeparator = RTL_CONSTANT_STRING("/");
-static ANSI_STRING KphpUrlParametersSeparator = RTL_CONSTANT_STRING("?");
-static ANSI_STRING KphpUrlAnchorSeparator = RTL_CONSTANT_STRING("#");
-static ANSI_STRING KphpUrlPortSeparator = RTL_CONSTANT_STRING(":");
 
 /**
  * \brief Parses a URL into its components.
@@ -2076,4 +2336,130 @@ Exit:
     }
 
     return status;
+}
+
+/**
+ * \brief Performs a domination check between a calling process and a target
+ * process.
+ *
+ * \details A process dominates the other when the protected level of the
+ * process exceeds the other. This domination check is not ideal, it is overly
+ * strict and lacks enough information from the kernel to fully understand the
+ * protected process state.
+ *
+ * \param[in] Process The calling process.
+ * \param[in] ProcessTarget Target process to check against the caller.
+ * \param[in] AccessMode Access mode of the request.
+ *
+ * \return Appropriate status:
+ * STATUS_SUCCESS The calling process dominates the target.
+ * STATUS_ACCESS_DENIED The calling process does not dominate the target.
+*/
+_IRQL_requires_max_(APC_LEVEL)
+_Must_inspect_result_
+NTSTATUS KphDominationCheck(
+    _In_ PEPROCESS Process,
+    _In_ PEPROCESS ProcessTarget,
+    _In_ KPROCESSOR_MODE AccessMode
+    )
+{
+    PS_PROTECTION processProtection;
+    PS_PROTECTION targetProtection;
+
+    PAGED_CODE();
+
+    if (AccessMode == KernelMode)
+    {
+        //
+        // Give the kernel what it wants...
+        //
+        return STATUS_SUCCESS;
+    }
+
+    //
+    // Until Microsoft gives us more insight into protected process domination
+    // we'll do a very strict check here:
+    //
+
+    processProtection = PsGetProcessProtection(Process);
+    targetProtection = PsGetProcessProtection(ProcessTarget);
+
+    if ((targetProtection.Type != PsProtectedTypeNone) &&
+        (targetProtection.Type >= processProtection.Type))
+    {
+        //
+        // Calling process protection does not dominate the other, deny access.
+        // We could do our own domination check/mapping here with the signing
+        // level, but it won't be great and Microsoft might change it, so we'll
+        // do this strict check until Microsoft exports:
+        // PsTestProtectedProcessIncompatibility
+        // RtlProtectedAccess/RtlTestProtectedAccess
+        //
+        return STATUS_ACCESS_DENIED;
+    }
+
+    return STATUS_SUCCESS;
+}
+
+/**
+ * \brief Performs a domination and privilege check to verify that the calling
+ * thread has the required privilege to perform the action.
+ *
+ * \details This function replaces a call to KphDominationCheck in certain
+ * paths. It grants access to a protected process *only* if the calling thread
+ * or associated process has been granted permission to do so. Session tokens
+ * implement an expiring token validated using asymmetric keys. This involves
+ * verification coordinated between the driver, client, and server which
+ * requires end user authentication and may be audited or revoked at any time.
+ * This feature is a service similar to those provided by various security
+ * or system management focused products. System Informer provides this service
+ * to users in this same light. System Informer provides security and system
+ * management capabilities to users.
+ *
+ * \param[in] Privileges The specific privileges to be checked.
+ * \param[in] Thread The calling thread.
+ * \param[in] ProcessTarget Target process to check against the caller.
+ * \param[in] AccessMode Describes the access mode of the request.
+ *
+ * \return Appropriate status:
+ * STATUS_SUCCESS The calling thread or process is granted access.
+ * STATUS_ACCESS_DENIED The calling process does not dominate the target.
+ */
+_IRQL_requires_max_(APC_LEVEL)
+_Must_inspect_result_
+NTSTATUS KphDominationAndPrivilegeCheck(
+    _In_ ULONG Privileges,
+    _In_ PETHREAD Thread,
+    _In_ PEPROCESS ProcessTarget,
+    _In_ KPROCESSOR_MODE AccessMode
+    )
+{
+    BOOLEAN granted;
+    PKPH_THREAD_CONTEXT thread;
+
+    PAGED_CODE();
+
+    if (AccessMode == KernelMode)
+    {
+        return STATUS_SUCCESS;
+    }
+
+    granted = FALSE;
+
+    thread = KphGetEThreadContext(Thread);
+    if (thread)
+    {
+        granted = KphSessionTokenPrivilegeCheck(thread, Privileges);
+
+        KphDereferenceObject(thread);
+    }
+
+    if (granted)
+    {
+        return STATUS_SUCCESS;
+    }
+
+    return KphDominationCheck(PsGetThreadProcess(Thread),
+                              ProcessTarget,
+                              AccessMode);
 }
