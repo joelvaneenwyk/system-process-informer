@@ -61,6 +61,15 @@ namespace CustomBuildTool
             Build.BuildWorkingFolder = Environment.CurrentDirectory;
             Build.BuildOutputFolder = Utils.GetOutputDirectoryPath();
 
+            var buildDef = Win32.GetEnvironmentVariable("%BUILD_DEFINITIONNAME%");
+            if (!string.IsNullOrWhiteSpace(buildDef))
+            {
+                if (buildDef.Contains("canary", StringComparison.OrdinalIgnoreCase))
+                {
+                    Build.BuildCanary = true;
+                }
+            }
+
             //{
             //    VisualStudioInstance instance = Utils.GetVisualStudioInstance();
             //
@@ -1234,7 +1243,7 @@ namespace CustomBuildTool
             if (!File.Exists(Verify.GetPath($"{Channel}.key")))
             {
                 // RELEASE_BUILD_KEY, PREVIEW_BUILD_KEY, CANARY_BUILD_KEY, or DEVELOPER_BUILD_KEY
-                string buildKey = Win32.GetEnvironmentVariable($"%{Channel.ToUpper()}_BUILD_KEY");
+                string buildKey = Win32.GetEnvironmentVariable($"%{Channel.ToUpper()}_BUILD_KEY%");
                 if (!string.IsNullOrWhiteSpace(buildKey))
                 {
                     Verify.Decrypt(Verify.GetPath($"{Channel}.s"), Verify.GetPath($"{Channel}.key"), buildKey);
