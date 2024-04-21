@@ -13,7 +13,36 @@ permissions:
   contents: read
 
 jobs:
+  msbuild:
+    strategy:
+      fail-fast: false
+      matrix:
+        config: ["Release"]
+        solution: ["SystemInformer.sln"]
+
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: "recursive"
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build Solution
+        run: msbuild "${{ matrix.solution }}" -t:restore -verbosity:normal
+
+      - name: Build Solution
+        run: msbuild "${{ matrix.solution }}" -t:rebuild -verbosity:normal -property:Configuration="${{ matrix.config }}"
+
   build:
+    needs: [msbuild]
+    strategy:
+      fail-fast: false
+      matrix:
+        languages: ["c-cpp, csharp"]
+
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
