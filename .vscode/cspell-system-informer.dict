@@ -1,19 +1,25 @@
 #
 # CSpell Dictionary
-#
 argloop
 bcdedit
+caction
+cobject
 codeql
 createkeypair
+dmex
 EnableExtensions
 endlocal
 ERRORLEVEL
 fixlib
+hwnd
+HWND
 Inout
+iopriority
 kphlib
 makecab
 msbuild
 MSVC
+NTAPI
 NTSTATUS
 peview
 Phap
@@ -21,6 +27,7 @@ phlib
 popd
 prefast
 PSTR
+PSYSTEM
 pushd
 PVOID
 PWSTR
@@ -40,5 +47,6 @@ vswhere
 WCHAR
 Winsider
 winsiderss
+wmain
 wprintf
 zdriver
