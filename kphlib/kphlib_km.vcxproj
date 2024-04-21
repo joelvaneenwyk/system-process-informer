@@ -23,7 +23,7 @@
     <TemplateGuid>{dd38f7fc-d7bd-488b-9242-7d8754cde80d}</TemplateGuid>
     <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
     <RootNamespace>kphlib_km</RootNamespace>
-    <ProjectName>kphlib</ProjectName>
+    <ProjectName>kphlib_km</ProjectName>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
     <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
   </PropertyGroup>
@@ -76,25 +76,25 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(ProjectDir)bin\$(Configuration)_$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)obj\km\$(Configuration)_$(Platform)\</IntDir>
+    <IntDir>$(ProjectDir)obj\$(TargetName)\$(Configuration)_$(Platform)\</IntDir>
     <EnableInf2cat>false</EnableInf2cat>
     <TargetName>kphlib_km</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(ProjectDir)bin\$(Configuration)_$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)obj\km\$(Configuration)_$(Platform)\</IntDir>
+    <IntDir>$(ProjectDir)obj\$(TargetName)\$(Configuration)_$(Platform)\</IntDir>
     <EnableInf2cat>false</EnableInf2cat>
     <TargetName>kphlib_km</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <OutDir>$(ProjectDir)bin\$(Configuration)_$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)obj\km\$(Configuration)_$(Platform)\</IntDir>
+    <IntDir>$(ProjectDir)obj\$(TargetName)\$(Configuration)_$(Platform)\</IntDir>
     <EnableInf2cat>false</EnableInf2cat>
     <TargetName>kphlib_km</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <OutDir>$(ProjectDir)bin\$(Configuration)_$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)obj\km\$(Configuration)_$(Platform)\</IntDir>
+    <IntDir>$(ProjectDir)obj\$(TargetName)\$(Configuration)_$(Platform)\</IntDir>
     <EnableInf2cat>false</EnableInf2cat>
     <TargetName>kphlib_km</TargetName>
   </PropertyGroup>

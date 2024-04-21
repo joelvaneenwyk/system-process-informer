@@ -79,25 +79,25 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(ProjectDir)bin\$(Configuration)_$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)$(ProjectName)\obj\$(Configuration)_$(Platform)\</IntDir>
+    <IntDir>$(ProjectDir)obj\$(ProjectName)_$(Configuration)_$(Platform)\</IntDir>
     <EnableInf2cat>false</EnableInf2cat>
     <TargetName>ksi</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <OutDir>$(ProjectDir)bin\$(Configuration)_$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)$(ProjectName)\obj\$(Configuration)_$(Platform)\</IntDir>
+    <IntDir>$(ProjectDir)obj\$(ProjectName)_$(Configuration)_$(Platform)\</IntDir>
     <EnableInf2cat>false</EnableInf2cat>
     <TargetName>ksi</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(ProjectDir)bin\$(Configuration)_$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)$(ProjectName)\obj\$(Configuration)_$(Platform)\</IntDir>
+    <IntDir>$(ProjectDir)obj\$(ProjectName)_$(Configuration)_$(Platform)\</IntDir>
     <EnableInf2cat>false</EnableInf2cat>
     <TargetName>ksi</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <OutDir>$(ProjectDir)bin\$(Configuration)_$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)$(ProjectName)\obj\$(Configuration)_$(Platform)\</IntDir>
+    <IntDir>$(ProjectDir)obj\$(ProjectName)_$(Configuration)_$(Platform)\</IntDir>
     <EnableInf2cat>false</EnableInf2cat>
     <TargetName>ksi</TargetName>
   </PropertyGroup>
