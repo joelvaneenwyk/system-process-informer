@@ -1,5 +1,6 @@
 @echo off
 setlocal enableextensions
+setlocal EnableExtensions
     cd /d "%~dp0\..\"
 
     start /B /W "" "tools\CustomBuildTool\bin\Release\CustomBuildTool.exe" "-cleansdk"

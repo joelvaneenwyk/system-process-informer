@@ -24,7 +24,7 @@ exit /b %SYSTEM_INFORMER_ERROR_LEVEL%
 exit /b
 
 :$Main
-    setlocal enableextensions
+setlocal EnableExtensions
     set "ROOT_DIR=%~dp0\..\"
     cd /d "%ROOT_DIR%"
     @cd /d "%~dp0\..\"

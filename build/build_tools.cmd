@@ -39,7 +39,7 @@ exit /b 0
 exit /b
 
 :$Main
-    setlocal enableextensions
+    setlocal EnableExtensions
     set "ROOT_DIR=%~dp0\..\"
     cd /d "%ROOT_DIR%"
 

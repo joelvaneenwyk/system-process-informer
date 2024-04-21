@@ -1,5 +1,5 @@
 @echo off
-@setlocal enableextensions
+@setlocal EnableExtensions
 
 call "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64_arm64
 
