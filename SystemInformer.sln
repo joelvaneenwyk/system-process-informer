@@ -54,6 +54,32 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fixlib", "tools\fixlib\fixl
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CustomSignTool", "tools\CustomSignTool\CustomSignTool.vcxproj", "{251DEE1D-6FCA-432B-9A07-B3849EA6C8AB}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lib", "lib", "{3EBC8F2C-227D-4577-973A-A5F215098C03}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".global", ".global", "{347786B3-522B-4FC5-812E-42B512ED027F}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+		build.cmd = build.cmd
+		Directory.Build.props = Directory.Build.props
+		README.md = README.md
+		SECURITY.md = SECURITY.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{B9BBAFAB-B191-430B-97C8-7B521508D511}"
+	ProjectSection(SolutionItems) = preProject
+		.github\CODEOWNERS = .github\CODEOWNERS
+		.github\dependabot.yml = .github\dependabot.yml
+		.github\FUNDING.yml = .github\FUNDING.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{93938D74-5580-41F3-A6E0-E285C3C3CF38}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\codeql.yml = .github\workflows\codeql.yml
+		.github\workflows\msbuild.yml = .github\workflows\msbuild.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM64 = Debug|ARM64
@@ -196,13 +222,17 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{477D0215-F252-41A1-874B-F27E3EA1ED17} = {3EBC8F2C-227D-4577-973A-A5F215098C03}
 		{72C124A2-3C80-41C6-ABA1-C4948B713204} = {9369BD3E-FA8B-4F43-9EE7-0EDEB8CBF4E9}
+		{F1757430-8EEE-49DF-A5F1-0999A53BB4A0} = {3EBC8F2C-227D-4577-973A-A5F215098C03}
 		{DDCABE98-0803-475A-8990-C04C8613D782} = {9369BD3E-FA8B-4F43-9EE7-0EDEB8CBF4E9}
 		{0C21014E-BC90-4AE5-AA32-398445C13B28} = {D61F7042-ACF8-4962-9A38-0C96D72FEA6B}
 		{60F7AED7-5094-41B2-A2C9-545398060C83} = {9369BD3E-FA8B-4F43-9EE7-0EDEB8CBF4E9}
 		{CD644DF2-A658-4CBC-9497-CA5DD13CFEC3} = {9369BD3E-FA8B-4F43-9EE7-0EDEB8CBF4E9}
 		{31F4AA06-7ED5-4A6D-B901-19AD4BD16175} = {9369BD3E-FA8B-4F43-9EE7-0EDEB8CBF4E9}
 		{251DEE1D-6FCA-432B-9A07-B3849EA6C8AB} = {9369BD3E-FA8B-4F43-9EE7-0EDEB8CBF4E9}
+		{B9BBAFAB-B191-430B-97C8-7B521508D511} = {347786B3-522B-4FC5-812E-42B512ED027F}
+		{93938D74-5580-41F3-A6E0-E285C3C3CF38} = {B9BBAFAB-B191-430B-97C8-7B521508D511}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {096726E0-A447-47E3-8E9C-3F2B2C695CFC}
