@@ -37,6 +37,8 @@ jobs:
       fail-fast: false
       matrix:
         languages: ["c-cpp, csharp"]
+        config: ["Release"]
+        solution: ["SystemInformer.sln"]
 
     steps:
       - name: Checkout repository
@@ -51,16 +53,15 @@ jobs:
         with:
           languages: ${{ matrix.languages }}
 
-      - name: Add msbuild to PATH
+      - name: Setup MSBuild 🛠️
         uses: microsoft/setup-msbuild@v2
 
-      - name: Build Solution
-        run: msbuild SystemInformer.sln -t:restore -verbosity:normal
-        working-directory: ${{github.workspace}}
+      - name: Restore NuGet Packages 📦
+        working-directory: ${{ github.workspace }}
+        run: nuget restore "${{ matrix.solution }}"
 
-      - name: Build Solution
-        run: msbuild SystemInformer.sln -t:rebuild -verbosity:normal -property:Configuration=Release
-        working-directory: ${{github.workspace}}
+      - name: Build Solution ⚙️
+        run: msbuild "${{ matrix.solution }}" -t:build -verbosity:normal -fileLogger -p:Configuration="${{ matrix.config }}" -p:Platform="${{ matrix.platform }}"
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3

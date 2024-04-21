@@ -4,6 +4,7 @@
 
 SystemInformer.vcxproj.DotSettings
 KSystemInformer/output/
+msbuild.log
 
 # Root output
 **/ARM*/[Dd]ebug/
