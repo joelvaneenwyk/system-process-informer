@@ -10,8 +10,8 @@ setlocal EnableExtensions
     goto:$MainEnd
 
     :$Error
-    echo [ERROR] Build failed.
-    if not "%SYSTEM_INFORMER_CI%"=="1" pause
+        echo [ERROR] Build failed.
+        if not "%SYSTEM_INFORMER_CI%"=="1" pause
 
 :$MainEnd
 endlocal & (

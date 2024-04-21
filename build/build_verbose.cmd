@@ -21,18 +21,22 @@ endlocal & (
 exit /b %SYSTEM_INFORMER_ERROR_LEVEL%
 
 :SetDevEnv
-    for /f "usebackq tokens=*" %%a in (`call "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -prerelease -products * -requires Microsoft.Component.MSBuild -property installationPath`) do (
+    for /f "usebackq tokens=*" %%a in (`call "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -nologo -latest -prerelease -products * -requires Microsoft.Component.MSBuild -property installationPath`) do (
        set "VSINSTALLPATH=%%a"
     )
 
-    if not defined VSINSTALLPATH (
-       echo No Visual Studio installation detected.
-       goto:$BuildError
-    )
-
+    if not defined VSINSTALLPATH goto:$BuildError
     if not exist "%VSINSTALLPATH%\VC\Auxiliary\Build\vcvarsall.bat" goto:$BuildError
     call "%VSINSTALLPATH%\VC\Auxiliary\Build\vcvarsall.bat" %~1
-goto:eof
+    goto:$SetDevEnvDone
+
+    :$BuildError
+        echo No Visual Studio installation detected.
+        set "SYSTEM_INFORMER_ERROR_LEVEL=23"
+        goto:$SetDevEnvDone
+
+    :$SetDevEnvDone
+exit /b %SYSTEM_INFORMER_ERROR_LEVEL%
 
 :TryRemoveDirectory
     if exist "%~1" (
@@ -113,11 +117,10 @@ setlocal EnableExtensions
 
     :$MainError
         echo [ERROR] Build failed. Last command: %SYSTEM_INFORMER_LAST_COMMAND% [Error: %ERRORLEVEL%]
-        if "%SYSTEM_INFORMER_CI%"=="1" goto:$MainEnd
+        if not "%SYSTEM_INFORMER_CI%"=="1" pause
+        goto:$MainEnd
 
-        :: If not running a CI build then pause so that user can inspect errors
-        pause
-:$MainEnd
+    :$MainEnd
 endlocal & (
     set "SYSTEM_INFORMER_ERROR_LEVEL=%ERRORLEVEL%"
     set "SYSTEM_INFORMER_LAST_COMMAND=%SYSTEM_INFORMER_LAST_COMMAND%"

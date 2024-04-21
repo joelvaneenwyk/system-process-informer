@@ -9,7 +9,6 @@ setlocal EnableDelayedExpansion
     ) else (
         echo [command]!_command!
     )
-    set SYSTEM_INFORMER_CI=1
     call !_command!
 endlocal & (
     set "SYSTEM_INFORMER_ERROR_LEVEL=%ERRORLEVEL%"
@@ -19,6 +18,9 @@ exit /b %SYSTEM_INFORMER_ERROR_LEVEL%
 
 :$Main
 setlocal EnableExtensions
+    set "ROOT_BUILD=%~nx0"
+    set "SYSTEM_INFORMER_CI=1"
+
     call :Command "%~dp0build\build_thirdparty.cmd"
     if errorlevel 1 goto:$MainError
 
@@ -41,7 +43,8 @@ setlocal EnableExtensions
     goto:$MainDone
 
     :$MainError
-    echo [ERROR] Build failed with '%ERRORLEVEL%' return code. Last command: "%SYSTEM_INFORMER_LAST_COMMAND%" [Error: %ERRORLEVEL%]
+        echo [ERROR] [%ROOT_BUILD%] Build failed with '%SYSTEM_INFORMER_ERROR_LEVEL%' return code. Last command: "%SYSTEM_INFORMER_LAST_COMMAND%"
+        goto:$MainDone
 
     :$MainDone
-endlocal & exit /b %ERRORLEVEL%
+endlocal & exit /b %SYSTEM_INFORMER_ERROR_LEVEL%

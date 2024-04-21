@@ -20,82 +20,97 @@ endlocal & (
 )
 exit /b %SYSTEM_INFORMER_ERROR_LEVEL%
 
-:$Main
+:Build
 setlocal EnableExtensions
-    if exist "%~dp0\output\cab" call :Command rmdir /q /s "%~dp0\output\cab"
-    if exist "%~dp0\output\KSystemInformer.cab" call :Command del "%~dp0\output\KSystemInformer.cab"
+    set "BUILD_SCRIPT=%~nx0"
+    set "_root=%~dp1"
+    if "%_root:~-1%"=="\" set "_root=%_root:~0,-1%"
+    set "_project_dir=%_root%\KSystemInformer"
+    set "_output=%_root%\KSystemInformer\output"
 
-    call :Command "%~dp0\build_zdriver.cmd" release rebuild
+    if exist "%_output%\cab" call :Command rmdir /q /s "%_output%\cab"
+    if exist "%_output%\KSystemInformer.cab" call :Command del "%_output%\KSystemInformer.cab"
+
+    :: We set 'SYSTEM_INFORMER_CI' to prevent it from calling 'pause' when it fails.
+    set "SYSTEM_INFORMER_CI=1"
+    call :Command "%_root%\build\build_zdriver.cmd" release rebuild
     if errorlevel 1 (
         echo [-] Build failed, CAB was not generated.
-        goto:$MainError
+        goto:$BuildError
     )
 
-    mkdir "%~dp0\output\cab"
+    if not exist "%_output%\cab" call :Command mkdir "%_output%\cab"
 
-    (call :Command robocopy "%~dp0\..\KSystemInformer\bin" "%~dp0\output\cab" *.sys *.dll *.pdb /mir) ^& if %ERRORLEVEL% lss 8 set ERRORLEVEL = 0
-    if %ERRORLEVEL% neq 0 (
+    (call :Command robocopy "%_root%\KSystemInformer\bin" "%_output%\cab" *.sys *.dll *.pdb /mir) ^& if %ERRORLEVEL% lss 8 set ERRORLEVEL = 0
+    if errorlevel 1 (
         echo [-] Failed to copy build artifacts to CAB directory.
-        goto:$MainError
+        goto:$BuildError
     )
 
-    (call :Command robocopy "%~dp0\..\KSystemInformer" "%~dp0\output\cab" KSystemInformer.inf) ^& if %ERRORLEVEL% lss 8 set ERRORLEVEL = 0
-    if %ERRORLEVEL% neq 0 (
+    (call :Command robocopy "%_root%\KSystemInformer" "%_output%\cab" KSystemInformer.inf) ^& if %ERRORLEVEL% lss 8 set ERRORLEVEL = 0
+    if errorlevel 1 (
         echo [-] Failed to copy INF to CAB directory.
-        goto:$MainError
+        goto:$BuildError
     )
 
-    pushd "%~dp0\output\cab"
-    makecab /f "%~dp0\KSystemInformer.ddf"
-    if %ERRORLEVEL% neq 0 (
+    pushd "%_output%\cab"
+    call :Command makecab /f "%_root%\build\KSystemInformer.ddf"
+    if errorlevel 1 (
         echo [-] Failed to generate CAB.
         popd
-        goto:$MainError
+        goto:$BuildError
     )
     popd
 
-    (call :Command robocopy "%~dp0\output\cab\disk1" "%~dp0\output" KSystemInformer.cab) ^& if %ERRORLEVEL% lss 8 set ERRORLEVEL = 0
-    if %ERRORLEVEL% neq 0 (
+    (call :Command robocopy "%_output%\cab\disk1" "%_output%" KSystemInformer.cab) ^& if %ERRORLEVEL% lss 8 set ERRORLEVEL = 0
+    if errorlevel 1 (
         echo [-] Failed to copy CAB to output folder.
-        goto:$MainError
+        goto:$BuildError
     )
 
-    if exist "%~dp0\output\cab" call :Command rmdir /q /s "%~dp0\output\cab"
+    if exist "%_output%\cab" call :Command rmdir /q /s "%_output%\cab"
     echo [+] CAB Complete!
 
     echo [.] Preparing to sign CAB...
 
-    for /f "usebackq tokens=*" %%A in (`call "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.Component.MSBuild -property installationPath`) do (
+    for /f "usebackq tokens=*" %%A in (`call "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -nologo -latest -prerelease -products * -requires Microsoft.Component.MSBuild -property installationPath`) do (
         set VSINSTALLPATH=%%A
     )
 
-    if not defined VSINSTALLPATH (
-        echo [-] Visual Studio not found
-        goto:$MainError
-    )
+    if not defined VSINSTALLPATH goto:$BuildSetDevEnvError
+    if not exist "%VSINSTALLPATH%\VC\Auxiliary\Build\vcvarsall.bat" goto:$BuildSetDevEnvError
 
-    if not exist "%VSINSTALLPATH%\VC\Auxiliary\Build\vcvarsall.bat" (
-        echo [-] Failed to set up build environment
-        goto:$MainError
-    )
-    call "%VSINSTALLPATH%\VC\Auxiliary\Build\vcvarsall.bat" amd64_arm64
+    :$BuildBuild
+        call "%VSINSTALLPATH%\VC\Auxiliary\Build\vcvarsall.bat" amd64_arm64
 
-    echo [.] Signing: "%~dp0\output\KSystemInformer.cab"
-    call :Command signtool sign /fd sha256 /n "Winsider" "%~dp0\output\KSystemInformer.cab"
-    if errorlevel 1 goto:$MainError
+        echo [.] Signing: "%_output%\KSystemInformer.cab"
+        call :Command signtool sign /fd sha256 /n "Winsider" "%_output%\KSystemInformer.cab"
+        if errorlevel 1 goto:$BuildError
 
-    echo [+] CAB Signed!
-    goto:$MainEnd
+        echo [+] CAB Signed!
+        goto:$BuildEnd
 
-    :$MainError
-        echo [ERROR] Build failed.
-        if "%SYSTEM_INFORMER_CI%"=="1" goto:$MainEnd
+    :$BuildSetDevEnvError
+        echo [-] Failed to set up build environment.
+        if errorlevel 1 (
+            set "SYSTEM_INFORMER_ERROR_LEVEL=%errorlevel%"
+        ) else (
+            set "SYSTEM_INFORMER_ERROR_LEVEL=22"
+        )
+        goto:$BuildError
 
-        :: If not running a CI build then pause so that user can inspect errors
-        pause
-:$MainEnd
+    :$BuildError
+        echo [ERROR] [%BUILD_SCRIPT%] Build failed. [%SYSTEM_INFORMER_ERROR_LEVEL%] %SYSTEM_INFORMER_LAST_COMMAND%
+        if not "%SYSTEM_INFORMER_CI%"=="1" pause
+        goto:$BuildEnd
+
+    :$BuildEnd
 endlocal & (
-    set "SYSTEM_INFORMER_ERROR_LEVEL=%ERRORLEVEL%"
+    set "SYSTEM_INFORMER_ERROR_LEVEL=%SYSTEM_INFORMER_ERROR_LEVEL%"
     set "SYSTEM_INFORMER_LAST_COMMAND=%SYSTEM_INFORMER_LAST_COMMAND%"
 )
 exit /b %SYSTEM_INFORMER_ERROR_LEVEL%
+
+:$Main
+    call :Build "%~dp0..\" %*
+exit /b %ERRORLEVEL%

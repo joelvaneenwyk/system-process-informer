@@ -24,7 +24,7 @@ exit /b %SYSTEM_INFORMER_ERROR_LEVEL%
     setlocal EnableExtensions
     cd /d "%~dp0\..\"
 
-    for /f "usebackq tokens=*" %%a in (`call "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -prerelease -products * -requires Microsoft.Component.MSBuild -property installationPath`) do (
+    for /f "usebackq tokens=*" %%a in (`call "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -nologo -latest -prerelease -products * -requires Microsoft.Component.MSBuild -property installationPath`) do (
        set "VSINSTALLPATH=%%a"
     )
 
@@ -66,9 +66,10 @@ exit /b %SYSTEM_INFORMER_ERROR_LEVEL%
     goto:$MainEnd
 
     :$MainError
-    echo [ERROR] Build failed for 'thirdparty' project.
-    if not "%SYSTEM_INFORMER_CI%"=="1" pause
-:$MainEnd
+        echo [ERROR] Build failed for 'thirdparty' project.
+        if not "%SYSTEM_INFORMER_CI%"=="1" pause
+
+    :$MainEnd
 endlocal & (
     set "SYSTEM_INFORMER_ERROR_LEVEL=%ERRORLEVEL%"
     set "SYSTEM_INFORMER_LAST_COMMAND=%SYSTEM_INFORMER_LAST_COMMAND%"

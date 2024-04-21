@@ -3,6 +3,7 @@
 #################
 
 SystemInformer.vcxproj.DotSettings
+KSystemInformer/output/
 
 # Root output
 **/ARM*/[Dd]ebug/
