@@ -96,7 +96,7 @@ setlocal EnableDelayedExpansion
     :$BuildSolutionDone
 endlocal & (
     set "SYSTEM_INFORMER_ERROR_LEVEL=%ERRORLEVEL%"
-    set "SYSTEM_INFORMER_LAST_COMMAND=%_command%"
+    set "SYSTEM_INFORMER_LAST_COMMAND=%SYSTEM_INFORMER_LAST_COMMAND%"
 )
 exit /b %SYSTEM_INFORMER_ERROR_LEVEL%
 
@@ -120,6 +120,6 @@ setlocal EnableExtensions
 :$MainEnd
 endlocal & (
     set "SYSTEM_INFORMER_ERROR_LEVEL=%ERRORLEVEL%"
-    set "SYSTEM_INFORMER_LAST_COMMAND=%_command%"
+    set "SYSTEM_INFORMER_LAST_COMMAND=%SYSTEM_INFORMER_LAST_COMMAND%"
 )
 exit /b %SYSTEM_INFORMER_ERROR_LEVEL%
