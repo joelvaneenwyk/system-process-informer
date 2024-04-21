@@ -261,7 +261,7 @@ namespace CustomBuildTool
                 if (!string.IsNullOrWhiteSpace(BuildCommit))
                 {
                     Program.PrintColorMessage(" (", ConsoleColor.DarkGray, false);
-                    Program.PrintColorMessage(BuildCommit.Substring(0, 7), ConsoleColor.DarkYellow, false);
+                    Program.PrintColorMessage(BuildCommit[..7], ConsoleColor.DarkYellow, false);
                     Program.PrintColorMessage(")", ConsoleColor.DarkGray, false);
                 }
 
@@ -1235,10 +1235,11 @@ namespace CustomBuildTool
 
         private static bool GetBuildDeployInfo(string Channel, out BuildDeployInfo Info)
         {
-            Info = new BuildDeployInfo();
-
-            Info.BinFilename = $"{BuildOutputFolder}\\systeminformer-build-{Channel}-bin.zip";
-            Info.SetupFilename = $"{BuildOutputFolder}\\systeminformer-build-{Channel}-setup.exe";
+            Info = new BuildDeployInfo
+            {
+                BinFilename = $"{BuildOutputFolder}\\systeminformer-build-{Channel}-bin.zip",
+                SetupFilename = $"{BuildOutputFolder}\\systeminformer-build-{Channel}-setup.exe"
+            };
 
             if (!File.Exists(Verify.GetPath($"{Channel}.key")))
             {

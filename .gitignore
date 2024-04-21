@@ -2,14 +2,35 @@
 ## Visual Studio
 #################
 
+SystemInformer.vcxproj.DotSettings
+KSystemInformer/output/
+msbuild.log
+
+# Root output
+**/ARM*/[Dd]ebug/
+**/ARM*/[Rr]elease/
+
+# Intermediate static analysis files
+.gdn/
+sdv/
+smv*.log
+*.sdv
+SDV-*.*
+*sdv*.cmd
+.sarif/
+
 # User-specific files
 *.suo
 *.user
 *.key
 *.sig
 *.orig
+.filenesting.json
 
 # Build results
+*.tlog
+*.exe.recipe
+vcpkg.applocal.log
 *.appx
 *.appxbundle
 *.cer
@@ -45,6 +66,7 @@
 # Visual C++ cache folders
 ipch/
 .vs/
+x64/
 
 # Visual Studio profiler
 *.psess
@@ -81,37 +103,37 @@ build/output/
 plugins-extra/
 sdk/
 
-!KSystemInformer/bin/
-KSystemInformer/bin/Debug32/
-KSystemInformer/bin/Debug64/
-KSystemInformer/bin/Release32/
-KSystemInformer/bin/Release64/
-KSystemInformer/bin/*
+# !KSystemInformer/bin/
+# KSystemInformer/bin/Debug32/
+# KSystemInformer/bin/Debug64/
+# KSystemInformer/bin/Release32/
+# KSystemInformer/bin/Release64/
+# KSystemInformer/bin/*
 
-!tools/CustomBuildTool/bin/
-tools/CustomBuildTool/bin/Debug*/
-tools/CustomBuildTool/bin/Release*/*
-!tools/CustomBuildTool/bin/Release/*.exe
-!tools/CustomBuildTool/bin/Release/*.dll
-!tools/CustomBuildTool/bin/Release/*.pdb
+# !tools/CustomBuildTool/bin/
+# tools/CustomBuildTool/bin/Debug*/
+# tools/CustomBuildTool/bin/Release*/*
+# !tools/CustomBuildTool/bin/Release/*.exe
+# !tools/CustomBuildTool/bin/Release/*.dll
+# !tools/CustomBuildTool/bin/Release/*.pdb
 
-!tools/CustomSignTool/bin/
-tools/CustomSignTool/bin/Debug*/
-tools/CustomSignTool/bin/Release*/*
-!tools/CustomSignTool/bin/Release32/CustomSignTool.exe
-!tools/CustomSignTool/bin/Release64/CustomSignTool.exe
+# !tools/CustomSignTool/bin/
+# tools/CustomSignTool/bin/Debug*/
+# tools/CustomSignTool/bin/Release*/*
+# !tools/CustomSignTool/bin/Release32/CustomSignTool.exe
+# !tools/CustomSignTool/bin/Release64/CustomSignTool.exe
 
-!tools/fixlib/bin/
-tools/fixlib/bin/Debug/
-tools/fixlib/bin/Release/*
-!tools/fixlib/bin/Release/fixlib.exe
+# !tools/fixlib/bin/
+# tools/fixlib/bin/Debug/
+# tools/fixlib/bin/Release/*
+# !tools/fixlib/bin/Release/fixlib.exe
 
-!tools/GenerateZw/GenerateZw/bin/
-tools/GenerateZw/GenerateZw/bin/Debug/
-tools/GenerateZw/GenerateZw/bin/Release/*
-!tools/GenerateZw/GenerateZw/bin/Release/GenerateZw.exe
+# !tools/GenerateZw/GenerateZw/bin/
+# tools/GenerateZw/GenerateZw/bin/Debug/
+# tools/GenerateZw/GenerateZw/bin/Release/*
+# !tools/GenerateZw/GenerateZw/bin/Release/GenerateZw.exe
 
-!tools/delaylib/bin/
+# !tools/delaylib/bin/
 
-!tools/thirdparty/bin/
-!tools/thirdparty/bin/*/*.pdb
+# !tools/thirdparty/bin/
+# !tools/thirdparty/bin/*/*.pdb

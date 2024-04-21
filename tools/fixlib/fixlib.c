@@ -5,7 +5,7 @@
 
 PPH_STRING inFile = NULL;
 PPH_STRING outFile = NULL;
-EXTERN_C PVOID __ImageBase;
+EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 
 BOOLEAN NTAPI CommandLineCallback(
     _In_opt_ PPH_COMMAND_LINE_OPTION Option,
@@ -44,7 +44,7 @@ int __cdecl main(int argc, char *argv[])
     PH_MAPPED_ARCHIVE_MEMBER member;
     PH_MAPPED_ARCHIVE_IMPORT_ENTRY entry;
 
-    if (!NT_SUCCESS(PhInitializePhLib(L"fixlib", __ImageBase)))
+    if (!NT_SUCCESS(PhInitializePhLib(L"fixlib", ((PVOID)&__ImageBase))))
         return 1;
 
     PhGetProcessCommandLineStringRef(&commandLine);

@@ -1,3 +1,7 @@
+# System Informer
+
+<!-- markdownlint-disable MD013 MD033 MD045 -->
+
 [![Build status](https://img.shields.io/github/actions/workflow/status/winsiderss/systeminformer/msbuild.yml?branch=master&style=for-the-badge)](https://github.com/winsiderss/systeminformer/actions/workflows/msbuild.yml)
 [![Build contributors](https://img.shields.io/github/contributors/winsiderss/systeminformer.svg?style=for-the-badge&color=blue)](https://github.com/winsiderss/systeminformer/graphs/contributors)
 [![Licence](https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge&color=blue)](https://opensource.org/licenses/MIT)
@@ -5,8 +9,6 @@
 [![SourceForge stats](https://img.shields.io/sourceforge/dt/processhacker.svg?style=for-the-badge&color=red)](https://sourceforge.net/projects/processhacker/files/stats/timeline?period=monthly)
 
 <img align="left" src="https://github.com/winsiderss/systeminformer/raw/master/SystemInformer/resources/systeminformer-128x128.png" width="128" height="128" style="max-width: 100%;padding-right: 20px;">
-
-## System Informer
 
 A free, powerful, multi-purpose tool that helps you monitor system resources, debug software and detect malware. Brought to you by Winsider Seminars & Solutions, Inc.
 
@@ -28,7 +30,6 @@ Windows 10 or higher, 32-bit or 64-bit.
 * Small, portable and no installation required.
 * 100% [Free Software](https://www.gnu.org/philosophy/free-sw.en.html) ([MIT](https://opensource.org/licenses/MIT))
 
-
 ## Building the project
 
 Requires Visual Studio (2022 or later).
@@ -41,10 +42,8 @@ See the [build readme](./build/README.md) for more information or if you're havi
 
 ## Enhancements/Bugs
 
-
 Please use the [GitHub issue tracker](https://github.com/winsiderss/systeminformer/issues)
 for reporting problems or suggesting new features.
-
 
 ## Settings
 

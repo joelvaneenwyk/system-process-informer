@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "app.manifest": "xml",
+        "*.rc": "rc-script"
+    },
+    "codeQL.createQuery.qlPackLocation": "c:\\Projects\\Personal\\system-informer",
+    "yaml.schemas": {
+        "https://json.schemastore.org/dependabot-2.0.json": "dependabot.yml",
+        "https://bitbucket.org/atlassianlabs/atlascode/src/devel/resources/schemas/pipelines-schema.json": "bitbucket-pipelines.yml",
+        "https://json.schemastore.org/github-issue-config.json": "file:///c%3A/Projects/Personal/system-informer/.github/ISSUE_TEMPLATE/config.yml"
+    }
+}

@@ -1,0 +1,10 @@
+version: "0.2"
+ignorePaths: []
+dictionaryDefinitions:
+  - name: system-informer
+    path: ./.vscode/cspell-system-informer.dict
+    addWords: true
+dictionaries:
+  - system-informer
+ignoreWords: []
+import: []

@@ -92,15 +92,17 @@ VOID NTAPI KsipApcNormalRoutine(
     NT_ASSERT(NormalContext);
 
     apc = (PKSI_KAPC)NormalContext;
-    driverObject = apc->DriverObject;
-    normalRoutine = (PKNORMAL_ROUTINE)apc->InternalRoutine;
-    cleanupRoutine = (PKSI_KCLEANUP_ROUTINE)apc->InternalCleanup;
+    if (apc != NULL) {
+        driverObject = (PDRIVER_OBJECT)apc->DriverObject;
+        normalRoutine = (PKNORMAL_ROUTINE)apc->InternalRoutine;
+        cleanupRoutine = (PKSI_KCLEANUP_ROUTINE)apc->InternalCleanup;
 
-    normalRoutine(apc->InternalContext, SystemArgument1, SystemArgument2);
+        normalRoutine(apc->InternalContext, SystemArgument1, SystemArgument2);
 
-    cleanupRoutine(apc, KsiApcCleanupNormal);
+        cleanupRoutine(apc, KsiApcCleanupNormal);
 
-    ObDereferenceObjectDeferDelete(driverObject);
+        ObDereferenceObjectDeferDelete(driverObject);
+    }
 }
 
 _Function_class_(KKERNEL_ROUTINE)

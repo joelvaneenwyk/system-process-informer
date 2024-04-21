@@ -442,7 +442,7 @@ FORCEINLINE VOID PhPrintInt32(
     _In_ LONG Int32
     )
 {
-    _ltow(Int32, Destination, 10);
+    _ltow_s(Int32, Destination, PH_INT32_STR_LEN_1, 10);
 }
 
 FORCEINLINE VOID PhPrintUInt32(
@@ -450,7 +450,7 @@ FORCEINLINE VOID PhPrintUInt32(
     _In_ ULONG UInt32
     )
 {
-    _ultow(UInt32, Destination, 10);
+    _ultow_s(UInt32, Destination, PH_INT32_STR_LEN_1, 10);
 }
 
 FORCEINLINE VOID PhPrintInt64(
@@ -458,7 +458,7 @@ FORCEINLINE VOID PhPrintInt64(
     _In_ LONG64 Int64
     )
 {
-    _i64tow(Int64, Destination, 10);
+    _i64tow_s(Int64, Destination, PH_INT64_STR_LEN_1, 10);
 }
 
 FORCEINLINE VOID PhPrintUInt64(
@@ -466,7 +466,7 @@ FORCEINLINE VOID PhPrintUInt64(
     _In_ ULONG64 UInt64
     )
 {
-    _ui64tow(UInt64, Destination, 10);
+    _ui64tow_s(UInt64, Destination, PH_INT64_STR_LEN_1, 10);
 }
 
 FORCEINLINE VOID PhPrintPointer(
@@ -477,9 +477,9 @@ FORCEINLINE VOID PhPrintPointer(
     Destination[0] = L'0';
     Destination[1] = L'x';
 #ifdef _WIN64
-    _ui64tow((ULONG64)Pointer, &Destination[2], 16);
+    _ui64tow_s((ULONG64)Pointer, &Destination[2], PH_PTR_STR_LEN_1, 16);
 #else
-    _ultow((ULONG)Pointer, &Destination[2], 16);
+    _ultow_s((ULONG)Pointer, &Destination[2], PH_PTR_STR_LEN_1, 16);
 #endif
 }
 
@@ -566,7 +566,7 @@ FORCEINLINE VOID PhProbeAddress(
 {
     if (UserLength != 0)
     {
-        if (((ULONG_PTR)UserAddress & (Alignment - 1)) != 0)
+        if (((ULONG_PTR)UserAddress & ((unsigned long long)(Alignment) - 1)) != 0)
             PhRaiseStatus(STATUS_DATATYPE_MISALIGNMENT);
 
         if (

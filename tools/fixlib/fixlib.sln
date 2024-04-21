@@ -5,6 +5,10 @@ VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fixlib", "fixlib.vcxproj", "{31F4AA06-7ED5-4A6D-B901-19AD4BD16175}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "phlib", "..\..\phlib\phlib.vcxproj", "{477D0215-F252-41A1-874B-F27E3EA1ED17}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "kphlib", "..\..\kphlib\kphlib_um.vcxproj", "{F1757430-8EEE-49DF-A5F1-0999A53BB4A0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -15,6 +19,14 @@ Global
 		{31F4AA06-7ED5-4A6D-B901-19AD4BD16175}.Debug|x86.Build.0 = Debug|Win32
 		{31F4AA06-7ED5-4A6D-B901-19AD4BD16175}.Release|x86.ActiveCfg = Release|Win32
 		{31F4AA06-7ED5-4A6D-B901-19AD4BD16175}.Release|x86.Build.0 = Release|Win32
+		{477D0215-F252-41A1-874B-F27E3EA1ED17}.Debug|x86.ActiveCfg = Debug|Win32
+		{477D0215-F252-41A1-874B-F27E3EA1ED17}.Debug|x86.Build.0 = Debug|Win32
+		{477D0215-F252-41A1-874B-F27E3EA1ED17}.Release|x86.ActiveCfg = Release|Win32
+		{477D0215-F252-41A1-874B-F27E3EA1ED17}.Release|x86.Build.0 = Release|Win32
+		{F1757430-8EEE-49DF-A5F1-0999A53BB4A0}.Debug|x86.ActiveCfg = Debug|Win32
+		{F1757430-8EEE-49DF-A5F1-0999A53BB4A0}.Debug|x86.Build.0 = Debug|Win32
+		{F1757430-8EEE-49DF-A5F1-0999A53BB4A0}.Release|x86.ActiveCfg = Release|Win32
+		{F1757430-8EEE-49DF-A5F1-0999A53BB4A0}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

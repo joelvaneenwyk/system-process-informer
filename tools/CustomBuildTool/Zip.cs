@@ -17,7 +17,7 @@ namespace CustomBuildTool
         private static string[] GetEntryNames(string[] names, string sourceFolder, bool includeBaseName)
         {
             if (names == null || names.Length == 0)
-                return Array.Empty<string>();
+                return [];
 
             if (includeBaseName)
                 sourceFolder = Path.GetDirectoryName(sourceFolder);
@@ -29,7 +29,7 @@ namespace CustomBuildTool
             var result = new string[names.Length];
             for (int i = 0; i < names.Length; i++)
             {
-                result[i] = names[i].Substring(length);
+                result[i] = names[i][length..];
             }
 
             return result;
