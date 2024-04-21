@@ -22,7 +22,7 @@ namespace CustomBuildTool
         };
 
         public static readonly BuildFile[] Build_Release_Files =
-        {
+        [
             new BuildFile("\\systeminformer-build-release-setup.exe", true),
             new BuildFile("\\systeminformer-build-release-bin.zip", true),
             //new BuildFile("\\systeminformer-build-preview-setup.exe", true),
@@ -35,10 +35,10 @@ namespace CustomBuildTool
             new BuildFile("\\systeminformer-build-sdk.zip", false),
             new BuildFile("\\systeminformer-build-pdb.zip", true),
             //new BuildFile("\\systeminformer-build-checksums.txt", false),
-        };
+        ];
 
         public static readonly string[] Build_Sdk_Directories =
-        {
+        [
             "sdk",
             "sdk\\include",
             "sdk\\dbg\\amd64",
@@ -49,10 +49,10 @@ namespace CustomBuildTool
             "sdk\\lib\\arm64",
             //"sdk\\samples\\SamplePlugin",
             //"sdk\\samples\\SamplePlugin\\bin\\Release32"
-        };
+        ];
 
         public static readonly string[] Build_Phnt_Headers =
-        {
+        [
             "ntbcd.h",
             "ntd3dkmt.h",
             "ntdbg.h",
@@ -87,10 +87,10 @@ namespace CustomBuildTool
             "phnt_windows.h",
             "subprocesstag.h",
             "winsta.h"
-        };
+        ];
 
         public static readonly string[] Build_Phlib_Headers =
-        {
+        [
             "appresolver.h",
             "circbuf.h",
             "circbuf_h.h",
@@ -133,14 +133,14 @@ namespace CustomBuildTool
             "treenew.h",
             "verify.h",
             "workqueue.h"
-        };
+        ];
 
         public static readonly string[] Build_Kphlib_Headers =
-        {
+        [
             "kphapi.h",
             "kphmsg.h",
             "kphmsgdefs.h",
-        };
+        ];
     }
 
     public readonly struct BuildFile
@@ -148,6 +148,7 @@ namespace CustomBuildTool
         public readonly string FileName;
         public readonly bool UploadCanary;
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0290:Use primary constructor", Justification = "<Pending>")]
         public BuildFile(string Filename, bool UploadCanary)
         {
             this.FileName = Filename;

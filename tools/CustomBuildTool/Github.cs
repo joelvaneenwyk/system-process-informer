@@ -363,7 +363,7 @@ namespace CustomBuildTool
         public GithubRelease()
         {
             this.ReleaseId = string.Empty;
-            this.Files = new List<GithubReleaseAsset>();
+            this.Files = [];
         }
 
         public bool Valid
@@ -438,6 +438,7 @@ namespace CustomBuildTool
         public string Filename { get; private set; }
         public string DownloadUrl { get; private set; }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0290:Use primary constructor", Justification = "<Pending>")]
         public GithubReleaseAsset(string Filename, string DownloadUrl)
         {
             this.Filename = Filename;
