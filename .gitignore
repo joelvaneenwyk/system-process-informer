@@ -4,6 +4,10 @@
 
 SystemInformer.vcxproj.DotSettings
 
+# Root output
+**/ARM*/[Dd]ebug/
+**/ARM*/[Rr]elease/
+
 # Intermediate static analysis files
 .gdn/
 sdv/
@@ -22,6 +26,9 @@ SDV-*.*
 .filenesting.json
 
 # Build results
+*.tlog
+*.exe.recipe
+vcpkg.applocal.log
 *.appx
 *.appxbundle
 *.cer
