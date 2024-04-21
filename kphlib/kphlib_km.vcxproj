@@ -1,14 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
@@ -36,26 +28,6 @@
     <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <WindowsTargetPlatformVersion>10.0.22000.0</WindowsTargetPlatformVersion>
-    <TargetVersion>Windows7</TargetVersion>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <DriverType>WDM</DriverType>
-    <Driver_SpectreMitigation>Spectre</Driver_SpectreMitigation>
-    <_NT_TARGET_VERSION>0x0601</_NT_TARGET_VERSION>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <WindowsTargetPlatformVersion>10.0.22000.0</WindowsTargetPlatformVersion>
-    <TargetVersion>Windows7</TargetVersion>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <DriverType>WDM</DriverType>
-    <Driver_SpectreMitigation>Spectre</Driver_SpectreMitigation>
-    <_NT_TARGET_VERSION>0x0601</_NT_TARGET_VERSION>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <TargetVersion>Windows10</TargetVersion>
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -102,18 +74,6 @@
   <PropertyGroup>
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(ProjectDir)bin\$(Configuration)_$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)obj\km\$(Configuration)_$(Platform)\</IntDir>
-    <EnableInf2cat>false</EnableInf2cat>
-    <TargetName>kphlib_km</TargetName>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(ProjectDir)bin\$(Configuration)_$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)obj\km\$(Configuration)_$(Platform)\</IntDir>
-    <EnableInf2cat>false</EnableInf2cat>
-    <TargetName>kphlib_km</TargetName>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(ProjectDir)bin\$(Configuration)_$(Platform)\</OutDir>
     <IntDir>$(ProjectDir)obj\km\$(Configuration)_$(Platform)\</IntDir>
@@ -138,56 +98,6 @@
     <EnableInf2cat>false</EnableInf2cat>
     <TargetName>kphlib_km</TargetName>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>$(CRT_IncludePath);$(KM_IncludePath);$(KIT_SHARED_IncludePath);$(ProjectDir)\..\phnt\include\;$(ProjectDir)\..\phlib\include\;$(ProjectDir)include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>POOL_NX_OPTIN;POOL_ZERO_DOWN_LEVEL_SUPPORT;_DEBUG;DEBUG;_X86_=1;i386=1;STD_CALL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <WarningLevel>Level4</WarningLevel>
-      <SDLCheck>true</SDLCheck>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalOptions>/kernel /utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <BuildStlModules>false</BuildStlModules>
-    </ClCompile>
-    <Link>
-      <AdditionalDependencies>ksecdd.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
-      <AdditionalOptions>/INTEGRITYCHECK /DEPENDENTLOADFLAG:0x800 /FILEALIGN:0x1000 %(AdditionalOptions)</AdditionalOptions>
-    </Link>
-    <Lib>
-      <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
-    </Lib>
-    <PreBuildEvent>
-      <Command>"$(ProjectDir)..\tools\CustomBuildTool\bin\Release\CustomBuildTool.exe" -dyndata "$(ProjectDir)..\bin\$(Configuration)$(PlatformArchitecture)"</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>$(CRT_IncludePath);$(KM_IncludePath);$(KIT_SHARED_IncludePath);$(ProjectDir)\..\phnt\include\;$(ProjectDir)\..\phlib\include\;$(ProjectDir)include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>POOL_NX_OPTIN;POOL_ZERO_DOWN_LEVEL_SUPPORT;_X86_=1;i386=1;STD_CALL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <WarningLevel>Level4</WarningLevel>
-      <SDLCheck>true</SDLCheck>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalOptions>/kernel /utf-8 /d1nodatetime %(AdditionalOptions)</AdditionalOptions>
-      <BuildStlModules>false</BuildStlModules>
-    </ClCompile>
-    <Link>
-      <AdditionalDependencies>ksecdd.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <AdditionalOptions>/INTEGRITYCHECK /BREPRO /DEPENDENTLOADFLAG:0x800 /PDBALTPATH:%_PDB% /FILEALIGN:0x1000 %(AdditionalOptions)</AdditionalOptions>
-      <CETCompat>true</CETCompat>
-    </Link>
-    <Lib>
-      <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
-    </Lib>
-    <PreBuildEvent>
-      <Command>"$(ProjectDir)..\tools\CustomBuildTool\bin\Release\CustomBuildTool.exe" -dyndata "$(ProjectDir)..\bin\$(Configuration)$(PlatformArchitecture)"</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>$(CRT_IncludePath);$(KM_IncludePath);$(KIT_SHARED_IncludePath);$(ProjectDir)\..\phnt\include\;$(ProjectDir)\..\phlib\include\;$(ProjectDir)include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -209,7 +119,7 @@
       <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
     </Lib>
     <PreBuildEvent>
-      <Command>"$(ProjectDir)..\tools\CustomBuildTool\bin\Release\CustomBuildTool.exe" -dyndata "$(ProjectDir)..\bin\$(Configuration)$(PlatformArchitecture)"</Command>
+      <Command>"$(ProjectDir)..\tools\CustomBuildTool\bin\$(Configuration)\CustomBuildTool.exe" -dyndata "$(ProjectDir)..\bin\$(Configuration)$(PlatformArchitecture)"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
@@ -235,7 +145,7 @@
       <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
     </Lib>
     <PreBuildEvent>
-      <Command>"$(ProjectDir)..\tools\CustomBuildTool\bin\Release\CustomBuildTool.exe" -dyndata "$(ProjectDir)..\bin\$(Configuration)$(PlatformArchitecture)"</Command>
+      <Command>"$(ProjectDir)..\tools\CustomBuildTool\bin\$(Configuration)\CustomBuildTool.exe" -dyndata "$(ProjectDir)..\bin\$(Configuration)$(PlatformArchitecture)"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -261,7 +171,7 @@
       <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
     </Lib>
     <PreBuildEvent>
-      <Command>"$(ProjectDir)..\tools\CustomBuildTool\bin\Release\CustomBuildTool.exe" -dyndata "$(ProjectDir)..\bin\$(Configuration)$(PlatformArchitecture)"</Command>
+      <Command>"$(ProjectDir)..\tools\CustomBuildTool\bin\$(Configuration)\CustomBuildTool.exe" -dyndata "$(ProjectDir)..\bin\$(Configuration)$(PlatformArchitecture)"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
@@ -286,7 +196,7 @@
       <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
     </Lib>
     <PreBuildEvent>
-      <Command>"$(ProjectDir)..\tools\CustomBuildTool\bin\Release\CustomBuildTool.exe" -dyndata "$(ProjectDir)..\bin\$(Configuration)$(PlatformArchitecture)"</Command>
+      <Command>"$(ProjectDir)..\tools\CustomBuildTool\bin\$(Configuration)\CustomBuildTool.exe" -dyndata "$(ProjectDir)..\bin\$(Configuration)$(PlatformArchitecture)"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
