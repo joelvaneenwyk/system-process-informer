@@ -1,6 +1,25 @@
 @echo off
 goto:$Main
 
+:Command
+setlocal EnableDelayedExpansion
+    set "_command=%*"
+    set "_command=!_command:      = !"
+    set "_command=!_command:    = !"
+    set "_command=!_command:   = !"
+    set "_command=!_command:  = !"
+    if "%GITHUB_ACTIONS%"=="" (
+        echo ##[cmd] !_command!
+    ) else (
+        echo [command]!_command!
+    )
+    !_command!
+endlocal & (
+    set "SYSTEM_INFORMER_ERROR_LEVEL=%ERRORLEVEL%"
+    set "SYSTEM_INFORMER_LAST_COMMAND=%_command%"
+)
+exit /b %SYSTEM_INFORMER_ERROR_LEVEL%
+
 :$Main
     setlocal EnableExtensions
     cd /d "%~dp0\..\"
@@ -27,23 +46,23 @@ goto:$Main
        rmdir /S /Q "tools\thirdparty\obj"
     )
 
-    msbuild /m tools\thirdparty\thirdparty.sln -property:Configuration=Debug -property:Platform=x86 -verbosity:normal
-    if %ERRORLEVEL% neq 0 goto:$MainError
+    call :Command msbuild /m tools\thirdparty\thirdparty.sln -property:Configuration=Debug -property:Platform=x86 -verbosity:normal
+    if errorlevel 1 goto:$MainError
 
-    msbuild /m tools\thirdparty\thirdparty.sln -property:Configuration=Release -property:Platform=x86 -verbosity:normal
-    if %ERRORLEVEL% neq 0 goto:$MainError
+    call :Command msbuild /m tools\thirdparty\thirdparty.sln -property:Configuration=Release -property:Platform=x86 -verbosity:normal
+    if errorlevel 1 goto:$MainError
 
-    msbuild /m tools\thirdparty\thirdparty.sln -property:Configuration=Debug -property:Platform=x64 -verbosity:normal
-    if %ERRORLEVEL% neq 0 goto:$MainError
+    call :Command msbuild /m tools\thirdparty\thirdparty.sln -property:Configuration=Debug -property:Platform=x64 -verbosity:normal
+    if errorlevel 1 goto:$MainError
 
-    msbuild /m tools\thirdparty\thirdparty.sln -property:Configuration=Release -property:Platform=x64 -verbosity:normal
-    if %ERRORLEVEL% neq 0 goto:$MainError
+    call :Command msbuild /m tools\thirdparty\thirdparty.sln -property:Configuration=Release -property:Platform=x64 -verbosity:normal
+    if errorlevel 1 goto:$MainError
 
-    msbuild /m tools\thirdparty\thirdparty.sln -property:Configuration=Debug -property:Platform=ARM64 -verbosity:normal
-    if %ERRORLEVEL% neq 0 goto:$MainError
+    call :Command msbuild /m tools\thirdparty\thirdparty.sln -property:Configuration=Debug -property:Platform=ARM64 -verbosity:normal
+    if errorlevel 1 goto:$MainError
 
-    msbuild /m tools\thirdparty\thirdparty.sln -property:Configuration=Release -property:Platform=ARM64 -verbosity:normal
-    if %ERRORLEVEL% neq 0 goto:$MainError
+    call :Command msbuild /m tools\thirdparty\thirdparty.sln -property:Configuration=Release -property:Platform=ARM64 -verbosity:normal
+    if errorlevel 1 goto:$MainError
     goto:$MainEnd
 
     :$MainError
@@ -52,7 +71,7 @@ goto:$Main
 :$MainEnd
 endlocal & (
     set "SYSTEM_INFORMER_ERROR_LEVEL=%ERRORLEVEL%"
-    set "SYSTEM_INFORMER_LAST_COMMAND=%_command%"
+    set "SYSTEM_INFORMER_LAST_COMMAND=%SYSTEM_INFORMER_LAST_COMMAND%"
 )
 exit /b %SYSTEM_INFORMER_ERROR_LEVEL%
 

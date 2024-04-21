@@ -56,7 +56,7 @@ exit /b
 setlocal EnableDelayedExpansion
     goto:$BuildConfig
     :BuildConfig
-       set "_solution_path=%~dp1\%~2"
+       set "_solution_path=%~dp1%~2"
        set "_config=%~3"
        set "_target=%~4"
        set "_msbuild_args=msbuild /m "%_solution_path%" -verbosity:normal -property:Configuration="%_config%" "
