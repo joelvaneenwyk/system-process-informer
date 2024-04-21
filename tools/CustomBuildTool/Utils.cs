@@ -118,6 +118,7 @@ namespace CustomBuildTool
 
         public static string ShellExecute(string FileName, string Arguments, bool FixNewLines = true)
         {
+            Program.PrintColorMessage($"[ShellExecute] {FileName} {Arguments}", ConsoleColor.DarkGray);
             CreateProcess(FileName, Arguments, out string outputstring, FixNewLines);
 
             return outputstring;
@@ -500,11 +501,11 @@ namespace CustomBuildTool
     public static class Utils
     {
         private static readonly string[] MsBuildPathArray =
-        {
+        [
             "\\MSBuild\\Current\\Bin\\amd64\\MSBuild.exe",
             "\\MSBuild\\Current\\Bin\\MSBuild.exe",
             "\\MSBuild\\15.0\\Bin\\MSBuild.exe"
-        };
+        ];
 
         private static string MsBuildFilePath;
         private static string VsWhereFilePath;
@@ -536,11 +537,11 @@ namespace CustomBuildTool
             if (string.IsNullOrWhiteSpace(VsWhereFilePath))
             {
                 string[] vswherePathArray =
-                {
+                [
                     "%ProgramFiles%\\Microsoft Visual Studio\\Installer\\vswhere.exe",
                     "%ProgramFiles(x86)%\\Microsoft Visual Studio\\Installer\\vswhere.exe",
                     "%ProgramW6432%\\Microsoft Visual Studio\\Installer\\vswhere.exe"
-                };
+                ];
 
                 foreach (string path in vswherePathArray)
                 {
@@ -626,11 +627,11 @@ namespace CustomBuildTool
         public static string GetGitFilePath()
         {
             string[] gitPathArray =
-            {
+            [
                 "%ProgramFiles%\\Git\\bin\\git.exe",
                 "%ProgramFiles(x86)%\\Git\\bin\\git.exe",
                 "%ProgramW6432%\\Git\\bin\\git.exe"
-            };
+            ];
 
             foreach (string path in gitPathArray)
             {
@@ -662,7 +663,7 @@ namespace CustomBuildTool
 
         public static string GetWindowsSdkIncludePath()
         {
-            List<KeyValuePair<Version, string>> versionList = new List<KeyValuePair<Version, string>>();
+            List<KeyValuePair<Version, string>> versionList = [];
             string kitsRoot = Win32.GetKeyValue(true, "Software\\Microsoft\\Windows Kits\\Installed Roots", "KitsRoot10", "%ProgramFiles(x86)%\\Windows Kits\\10\\");
             string kitsPath = Environment.ExpandEnvironmentVariables($"{kitsRoot}\\Include");
 
@@ -684,7 +685,7 @@ namespace CustomBuildTool
 
                 if (versionList.Count > 0)
                 {
-                    var result = versionList[versionList.Count - 1];
+                    var result = versionList[^1];
 
                     if (!string.IsNullOrWhiteSpace(result.Value))
                     {
@@ -698,7 +699,7 @@ namespace CustomBuildTool
 
         public static string GetWindowsSdkPath()
         {
-            List<KeyValuePair<Version, string>> versionList = new List<KeyValuePair<Version, string>>();
+            List<KeyValuePair<Version, string>> versionList = [];
             string kitsRoot = Win32.GetKeyValue(true, "Software\\Microsoft\\Windows Kits\\Installed Roots", "KitsRoot10", "%ProgramFiles(x86)%\\Windows Kits\\10\\");
             string kitsPath = Environment.ExpandEnvironmentVariables($"{kitsRoot}\\bin");
 
@@ -720,7 +721,7 @@ namespace CustomBuildTool
 
                 if (versionList.Count > 0)
                 {
-                    var result = versionList[versionList.Count - 1];
+                    var result = versionList[^1];
 
                     if (!string.IsNullOrWhiteSpace(result.Value))
                     {
@@ -734,7 +735,7 @@ namespace CustomBuildTool
 
         public static string GetWindowsSdkVersion()
         {
-            List<string> versions = new List<string>();
+            List<string> versions = [];
             string kitsRoot = Win32.GetKeyValue(true, "Software\\Microsoft\\Windows Kits\\Installed Roots", "KitsRoot10", "%ProgramFiles(x86)%\\Windows Kits\\10\\");
             string kitsPath = Environment.ExpandEnvironmentVariables($"{kitsRoot}\\bin");
 
