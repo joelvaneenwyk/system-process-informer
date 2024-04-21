@@ -47,13 +47,13 @@ jobs:
       security-events: write
 
   build_driver:
+    needs: [build]
     strategy:
       fail-fast: false
       matrix:
         config: ["debug", "release"]
 
     runs-on: windows-latest
-    needs: [build]
     steps:
       - uses: actions/checkout@v4
 
