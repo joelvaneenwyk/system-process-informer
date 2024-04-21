@@ -51,30 +51,16 @@ jobs:
         with:
           languages: ${{ matrix.languages }}
 
-      - name: Build Third Party
-        shell: cmd
-        working-directory: ${{github.workspace}}
-        run: build\build_thirdparty.cmd
-
-      - name: Build Tools
-        shell: cmd
-        working-directory: ${{github.workspace}}
-        run: build\build_tools.cmd
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v2
 
       - name: Build Solution
-        shell: cmd
+        run: msbuild SystemInformer.sln -t:restore -verbosity:normal
         working-directory: ${{github.workspace}}
-        run: build\build_verbose.cmd
 
-      - name: Build SDK
-        shell: cmd
+      - name: Build Solution
+        run: msbuild SystemInformer.sln -t:rebuild -verbosity:normal -property:Configuration=Release
         working-directory: ${{github.workspace}}
-        run: build\build_sdk.cmd
-
-      - name: Build Driver
-        shell: cmd
-        working-directory: ${{github.workspace}}
-        run: build\build_zdriver.cmd prefast
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
