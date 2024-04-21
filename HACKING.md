@@ -72,10 +72,10 @@ For functions which are passed a callback function, it is not guaranteed that a 
 
 Every thread start routine must have the following signature:
 
-```
-    NTSTATUS NameOfRoutine(
-        _In_ PVOID Parameter
-        );
+```cpp
+NTSTATUS NameOfRoutine(
+    _In_ PVOID Parameter
+    );
 ```
 
 Thread creation is done through the `PhCreateThread` function.

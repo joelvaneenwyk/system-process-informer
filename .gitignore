@@ -2,6 +2,8 @@
 ## Visual Studio
 #################
 
+SystemInformer.vcxproj.DotSettings
+
 # Intermediate static analysis files
 .gdn/
 sdv/
